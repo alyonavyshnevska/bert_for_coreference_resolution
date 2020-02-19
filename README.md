@@ -1,7 +1,4 @@
-# Bert For Coreference Resolution
-Final Project for the Coreference Resolution Course at the University of Potsdam. Winter Term 19/20
-
-Authors:
+Contributors:
 Patrick Kahardipraja    
 Olena Vyshnevska
 

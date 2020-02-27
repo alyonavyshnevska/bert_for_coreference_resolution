@@ -1,3 +1,48 @@
+### bert_large
+
+# Eval:
+
+Predicted conll file: /tmp/tmpau_91g9p
+Official result for muc
+version: 8.01 /project/vyshnevska/conll-2012/scorer/v8.01/lib/CorScorer.pm
+
+====== TOTALS =======
+Identification of Mentions: Recall: (16907 / 19764) 85.54%	Precision: (16907 / 19107) 88.48%	F1: 86.99%
+--------------------------------------------------------------------------
+Coreference: Recall: (12535 / 15232) 82.29%	Precision: (12535 / 14817) 84.59%	F1: 83.43%
+--------------------------------------------------------------------------
+
+Official result for bcub
+version: 8.01 /project/vyshnevska/conll-2012/scorer/v8.01/lib/CorScorer.pm
+
+====== TOTALS =======
+Identification of Mentions: Recall: (16907 / 19764) 85.54%	Precision: (16907 / 19107) 88.48%	F1: 86.99%
+--------------------------------------------------------------------------
+Coreference: Recall: (14557.8353633729 / 19764) 73.65%	Precision: (14644.8061154597 / 19107) 76.64%	F1: 75.12%
+--------------------------------------------------------------------------
+
+Official result for ceafe
+version: 8.01 /project/vyshnevska/conll-2012/scorer/v8.01/lib/CorScorer.pm
+
+====== TOTALS =======
+Identification of Mentions: Recall: (16907 / 19764) 85.54%	Precision: (16907 / 19107) 88.48%	F1: 86.99%
+--------------------------------------------------------------------------
+Coreference: Recall: (3175.55890708953 / 4532) 70.06%	Precision: (3175.55890708953 / 4290) 74.02%	F1: 71.99%
+--------------------------------------------------------------------------
+
+Average F1 (conll): 76.85%
+Average F1 (py): 76.84% on 348 docs
+Average precision (py): 78.42%
+Average recall (py): 75.33%
+
+
+Prediction: 
+
+GPU=3 python3 predict.py bert_large data/test.english.384.jsonlines data/test.english.384.bert_large_pred_output.jsonlines
+output in: data/test.english.384.bert_large_pred_output.jsonlines
+
+### bert_base
+
 On dev set:
 
 Predicted conll file: /tmp/tmpdjrxkmx0
@@ -34,8 +79,6 @@ Average F1 (conll): 74.11%
 Average F1 (py): 74.09% on 343 docs
 Average precision (py): 73.18%
 Average recall (py): 75.05%
-
-
 
 
 
@@ -79,11 +122,10 @@ Average recall (py): 74.46%
 
 
 
-## Spanbert
+### Spanbert
 
 Prediction:
 GPU=3 python3 predict.py spanbert_large data/test.english.384.jsonlines data/test.english.384.pred_output.jsonlines
-
 
 Eval:
 GPU=3 python3 evaluate.py spanbert_large

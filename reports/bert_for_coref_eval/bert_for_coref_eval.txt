@@ -40,8 +40,6 @@ Average recall (py): 75.05%
 
 
 
-
-
 On test set:
 
 Predicted conll file: /tmp/tmpjzhdt4eq
@@ -76,3 +74,52 @@ Average F1 (conll): 73.38%
 Average F1 (py): 73.38% on 348 docs
 Average precision (py): 72.38%
 Average recall (py): 74.46%
+
+
+
+
+
+## Spanbert
+
+Prediction:
+GPU=3 python3 predict.py spanbert_large data/test.english.384.jsonlines data/test.english.384.pred_output.jsonlines
+
+
+Eval:
+GPU=3 python3 evaluate.py spanbert_large
+
+Predicted conll file: /tmp/tmplblnlf57
+Official result for muc
+version: 8.01 /project/vyshnevska/conll-2012/scorer/v8.01/lib/CorScorer.pm
+Repeated mention in the key: 656, 656 7290
+
+====== TOTALS =======
+Identification of Mentions: Recall: (16574 / 19155) 86.52%	Precision: (16574 / 18589) 89.16%	F1: 87.82%
+--------------------------------------------------------------------------
+Coreference: Recall: (12268 / 14610) 83.96%	Precision: (12268 / 14195) 86.42%	F1: 85.17%
+--------------------------------------------------------------------------
+
+Official result for bcub
+version: 8.01 /project/vyshnevska/conll-2012/scorer/v8.01/lib/CorScorer.pm
+Repeated mention in the key: 656, 656 7290
+
+====== TOTALS =======
+Identification of Mentions: Recall: (16574 / 19155) 86.52%	Precision: (16574 / 18589) 89.16%	F1: 87.82%
+--------------------------------------------------------------------------
+Coreference: Recall: (14887.0091163146 / 19156) 77.71%	Precision: (14917.0668318052 / 18589) 80.24%	F1: 78.96%
+--------------------------------------------------------------------------
+
+Official result for ceafe
+version: 8.01 /project/vyshnevska/conll-2012/scorer/v8.01/lib/CorScorer.pm
+Repeated mention in the key: 656, 656 7290
+
+====== TOTALS =======
+Identification of Mentions: Recall: (16574 / 19155) 86.52%	Precision: (16574 / 18589) 89.16%	F1: 87.82%
+--------------------------------------------------------------------------
+Coreference: Recall: (3405.78108143735 / 4546) 74.91%	Precision: (3405.78108143735 / 4394) 77.5%	F1: 76.19%
+--------------------------------------------------------------------------
+
+Average F1 (conll): 80.11%
+Average F1 (py): 80.06% on 343 docs
+Average precision (py): 81.34%
+Average recall (py): 78.82%

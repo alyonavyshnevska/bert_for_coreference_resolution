@@ -1,11 +1,30 @@
+## Linguistic Knowledge and Transferibility for Contextual Representation
+Liu et al 2019
+[Code provided by authors](https://github.com/nelson-liu/contextual-repr-analysis)
+
+**Finding**: Frozen contextual represenations + linear models perform similar to fine tuning model weigths on specific tasks
+
+**Arc prediction**: binary classification task, where the model is trained to identify whether a relation exists between two tokens.
+
+e.g. given a word pair w1,w2,
+we input [w1 , w2 , w1 dot w2 ] into the probing model
+
+**Negative examples**: To generate negative examples we take each positive example (w a , w b ), where w b occurs after w a and the two tokens share a coreference cluster. We create a negative example (w random entity , w b ), where w random entity is a token that occurs before w b and belongs to a different coreference cluster.
+
+------
+
+
 ## Bert for Coreference Resolution
 Joshi et al 2019
+[Code provided by authors](https://github.com/mandarjoshi90/coref)
 
+-----
 
 ## What do we learn from context? Probing for sentence structure in contextualized word represenattions 
 
 Tenney et al 2019
 
+-----
 
 ## The Illustrated Transformer (blog post)
 
@@ -26,7 +45,7 @@ Jay Allamar: [Blogpost](http://jalammar.github.io/illustrated-transformer/)
 4. Each layer applies self-attention, and passes its results through a feed-forward network, and then hands it off to the next encoder.
 
 
-
+-----
 
 
 ## The Illustrated BERT

@@ -8,7 +8,7 @@ import json
 import tensorflow as tf
 import numpy as np
 import span_util
-from coref import util
+import util
 from custom_coref import CustomCorefIndependent
 
 if __name__ == "__main__":

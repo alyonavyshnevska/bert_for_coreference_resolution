@@ -8,8 +8,8 @@ import json
 import tensorflow as tf
 import util
 
-from coref.independent import CorefModel
-from coref.bert import modeling
+from independent import CorefModel
+from bert import modeling
 
 
 class CustomCorefIndependent(CorefModel):

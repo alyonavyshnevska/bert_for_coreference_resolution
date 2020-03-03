@@ -1,5 +1,9 @@
 data/
 
+#pycharm
+.idea/
+
+
 ### JupyterNotebooks ###
 # gitignore template for Jupyter Notebooks
 # website: http://jupyter.org/

@@ -62,7 +62,7 @@ def create_negative_positive_samples(path_jsonlines_file, output_path, debug_mod
                 # combinations because we want only [[87,87],[86,86]] as positive example out of cluster
                 # [[87,87], [86,86]]. ermutations would give us [[87,87],[86,86]], [[86,86],[87,87]]
                 permutations = list(itertools.combinations(cluster, 2))
-                permutations = [list(i) for i in permutations]
+                permutations = [sorted(list(i)) for i in permutations]
                 list_of_positive_clusters.extend(permutations)
 
                 # create random negative samples:
@@ -76,7 +76,7 @@ def create_negative_positive_samples(path_jsonlines_file, output_path, debug_mod
 
                     # choose a random mention from all mentions in this sample except from own cluster
                     random_mention = random.choice(options)
-                    negative_cluster.append([mention, random_mention])
+                    negative_cluster.append(sorted([mention, random_mention]))
 
                 if debug_mode:
                     print('\navaliable options for negative: ', options)
@@ -88,8 +88,8 @@ def create_negative_positive_samples(path_jsonlines_file, output_path, debug_mod
             assert len(mentions) == len(list_of_negative_clusters), 'Not every mention received a negative examples'
 
             #calculate distances
-            distances_positive = [[cluster, abs(cluster[0][0] - cluster[1][0])] for cluster in list_of_positive_clusters]
-            distances_negative = [[cluster, abs(cluster[0][0] - cluster[1][0])] for cluster in list_of_negative_clusters]
+            distances_positive = [[cluster, abs(cluster[1][0] - cluster[0][1])] for cluster in list_of_positive_clusters]
+            distances_negative = [[cluster, abs(cluster[1][0] - cluster[0][1])] for cluster in list_of_negative_clusters]
 
 
             # write negative_clusters to the sample

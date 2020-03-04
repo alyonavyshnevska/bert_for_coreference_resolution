@@ -22,7 +22,7 @@ def dump_jsonl(data, output_path, append=False):
 def create_negative_positive_samples(path_jsonlines_file, output_path, debug_mode=True):
     '''
 
-    :param jsonlines_file: File with positive examples.
+    :param path_jsonlines_file: File with clusters of coreferent mentions
     Structure: key = 'clusters'. Inside clusters are lists of coreferences. Each coreference has len 2
     For e.g. clusters = [[[61, 63], [44, 46], [27, 29]],
                             [[21, 25], [18, 18]],
@@ -30,9 +30,9 @@ def create_negative_positive_samples(path_jsonlines_file, output_path, debug_mod
 
         Mention 61-63 is coreferent with 44-46 and 27-29
 
-    :path_negative_examples: Where to save the jsonlines file with negative examples
+    :output_file: Where to save the jsonlines file with negative, positive examples and distances
 
-    :return: jsonlines_file: File with negative examples for this file
+    :return: nothing
     '''
 
     output_samples = list()

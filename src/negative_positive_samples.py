@@ -88,8 +88,8 @@ def create_negative_positive_samples(path_jsonlines_file, output_path, debug_mod
             assert len(mentions) == len(list_of_negative_clusters), 'Not every mention received a negative examples'
 
             #calculate distances
-            distances_positive = [[cluster, abs(cluster[0][1] - cluster[1][0])] for cluster in list_of_positive_clusters]
-            distances_negative = [[cluster, abs(cluster[0][1] - cluster[1][0])] for cluster in list_of_negative_clusters]
+            distances_positive = [[cluster, abs(cluster[0][0] - cluster[1][0])] for cluster in list_of_positive_clusters]
+            distances_negative = [[cluster, abs(cluster[0][0] - cluster[1][0])] for cluster in list_of_negative_clusters]
 
 
             # write negative_clusters to the sample

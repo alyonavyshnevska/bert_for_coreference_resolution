@@ -3,6 +3,7 @@ import jsonlines
 import random
 import json
 import sys
+import itertools
 
 
 def dump_jsonl(data, output_path, append=False):
@@ -18,7 +19,7 @@ def dump_jsonl(data, output_path, append=False):
 
 
 
-def create_negative_samples(path_jsonlines_file, output_path, debug_mode=False):
+def create_negative_positive_samples(path_jsonlines_file, output_path, debug_mode=True):
     '''
 
     :param jsonlines_file: File with positive examples.
@@ -51,15 +52,23 @@ def create_negative_samples(path_jsonlines_file, output_path, debug_mode=False):
             # back to list of mentions
             mentions = [list(mention) for mention in mentions]
 
-            # start list of negative coreferences, where each mention in current cluster gets a negative coreference
-            list_of_negative_clusters = []
+            list_of_negative_clusters = list()
+            list_of_positive_clusters = list()
 
-            # create random negative samples:
-            # for each mention choose a mention from all mentions in this document,
-            # that is not in the current cluster
+
             for cluster in sample['clusters']:
 
-                negative_cluster = dict()
+                # create positive samples: combinations of a cluster of length 2
+                # combinations because we want only [[87,87],[86,86]] as positive example out of cluster
+                # [[87,87], [86,86]]. ermutations would give us [[87,87],[86,86]], [[86,86],[87,87]]
+                permutations = list(itertools.combinations(cluster, 2))
+                permutations = [list(i) for i in permutations]
+                list_of_positive_clusters.extend(permutations)
+
+                # create random negative samples:
+                # for each mention choose a mention from all mentions in this document,
+                # that is not in the current cluster
+                negative_cluster = list()
 
                 for mention in cluster:
                     #remove mentions from current cluster as option for a random negative examples
@@ -67,18 +76,21 @@ def create_negative_samples(path_jsonlines_file, output_path, debug_mode=False):
 
                     # choose a random mention from all mentions in this sample except from own cluster
                     random_mention = random.choice(options)
-                    negative_cluster[tuple(mention)] = [mention, random_mention]
-
-                list_of_negative_clusters.extend(list(negative_cluster.values()))
+                    negative_cluster.append([mention, random_mention])
+                    # negative_cluster[tuple(mention)] = [mention, random_mention]
 
                 if debug_mode:
-                    print('\navaliable options: ', options)
-                    print(cluster, '=========>', list(negative_cluster.values()))
+                    print('\navaliable options for negative: ', options)
+                    print(cluster, '=========>', negative_cluster)
 
+                list_of_negative_clusters.extend(negative_cluster)
+
+            # assert that every mention received one negative mention
             assert len(mentions) == len(list_of_negative_clusters), 'Not every mention received a negative examples'
 
             # write negative_clusters to the sample
             sample['negative_clusters'] = list_of_negative_clusters
+            sample['positive_clusters'] = list_of_positive_clusters
 
             output_samples.append(sample)
 
@@ -86,18 +98,22 @@ def create_negative_samples(path_jsonlines_file, output_path, debug_mode=False):
 
 
 if __name__ == '__main__':
-    # create_negative_samples('../test/dummy_test.jsonlines', '../test/dummy_test_output.jsonlines', debug_mode=False)
+    # create_negative_positive_samples('../test/dummy_test.jsonlines', '../test/dummy_test_output.jsonlines', debug_mode=True)
 
     input_file = sys.argv[1]
     output_file = sys.argv[2]
-
-    create_negative_samples(input_file, output_file, debug_mode=False)
+    debug_mode = False
 
     # insert verbose as sys.args[3] to print created negative clusters
     if '--verbose' in sys.argv:
-        with jsonlines.open(output_file) as reader:
-            for sample in reader.iter(type=dict, skip_invalid=True):
-                print("\nClusters:")
-                for i in sample['clusters']:
-                    print(i)
-                print("Negative Clusters: ", sample['negative_clusters'])
+        debug_mode = True
+    create_negative_positive_samples(input_file, output_file, debug_mode=debug_mode)
+
+
+    # if '--verbose' in sys.argv:
+    #     with jsonlines.open(output_file) as reader:
+    #         for sample in reader.iter(type=dict, skip_invalid=True):
+    #             print("\nClusters:")
+    #             for i in sample['clusters']:
+    #                 print(i)
+    #             print("Negative Clusters: ", sample['negative_clusters'])

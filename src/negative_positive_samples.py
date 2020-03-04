@@ -77,7 +77,6 @@ def create_negative_positive_samples(path_jsonlines_file, output_path, debug_mod
                     # choose a random mention from all mentions in this sample except from own cluster
                     random_mention = random.choice(options)
                     negative_cluster.append([mention, random_mention])
-                    # negative_cluster[tuple(mention)] = [mention, random_mention]
 
                 if debug_mode:
                     print('\navaliable options for negative: ', options)
@@ -88,9 +87,16 @@ def create_negative_positive_samples(path_jsonlines_file, output_path, debug_mod
             # assert that every mention received one negative mention
             assert len(mentions) == len(list_of_negative_clusters), 'Not every mention received a negative examples'
 
+            #calculate distances
+            distances_positive = [[cluster, abs(cluster[0][1] - cluster[1][0])] for cluster in list_of_positive_clusters]
+            distances_negative = [[cluster, abs(cluster[0][1] - cluster[1][0])] for cluster in list_of_negative_clusters]
+
+
             # write negative_clusters to the sample
             sample['negative_clusters'] = list_of_negative_clusters
             sample['positive_clusters'] = list_of_positive_clusters
+            sample['distances_positive'] = distances_positive
+            sample['distances_negative'] = distances_negative
 
             output_samples.append(sample)
 

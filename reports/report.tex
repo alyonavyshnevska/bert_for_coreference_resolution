@@ -1,0 +1,78 @@
+\documentclass[11pt]{article}
+
+\usepackage[scaled]{helvet}
+\renewcommand\familydefault{\sfdefault} 
+\usepackage[T1]{fontenc}%%% use with PDFLaTeX
+\usepackage[utf8]{inputenc}
+\usepackage[top=25mm,left=25mm,right=25mm,bottom=20mm,headsep=15pt,footskip=15pt,a4paper]{geometry} % see geometry.pdf on how to lay out the page. There's lots.
+\usepackage[english]{babel}
+
+\usepackage{color}
+\usepackage{enumitem}
+\usepackage{hyperref}
+\usepackage[parfill]{parskip} % no indentation
+
+%\usepackage{helvet}
+\usepackage{color}
+
+\usepackage[backend=biber,style=authoryear]{biblatex}
+%\usepackage{biblatex}
+\addbibresource{references.bib}
+
+
+\makeatletter         
+\def\@maketitle{   % custom maketitle 
+\begin{center}%
+{\bfseries \@title}%
+{\bfseries \@author}%
+\end{center}%
+\smallskip \hrule \bigskip }
+
+
+\title{{\LARGE Coreference Resolution}\\[1.5mm]
+{\large Working Title}\\[1.5mm]} %%% Fill in your project title
+\author{Patrick Kahardipraja, Olena Vyshnevska}%%% Fill in your name 
+\date{} % delete this line to display the current date
+
+
+%%% BEGIN DOCUMENT
+\begin{document}
+
+\maketitle
+
+
+\section{Introduction}
+
+\section{Related Work} 
+
+\cite{tenney2019context}
+
+\cite{liu2019linguistic}
+
+\cite{joshi2019coref}
+
+\cite{lee2018higher}
+
+
+\section{Approach}
+
+
+
+\section{Experiment}
+
+\section{Results}
+
+\section{Discussion}
+
+\subsection{Future Work}
+
+\section{Conclusion}
+
+\nocite{*}
+
+\printbibliography
+
+\end{document}
+
+% https://www.overleaf.com/learn/latex/Articles/Getting_started_with_BibLaTeX
+

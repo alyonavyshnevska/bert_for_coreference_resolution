@@ -9,7 +9,7 @@
 
 \usepackage{color}
 \usepackage{enumitem}
-\usepackage{hyperref}
+\usepackage[colorlinks,citecolor=blue]{hyperref}
 \usepackage[parfill]{parskip} % no indentation
 
 %\usepackage{helvet}
@@ -43,32 +43,78 @@
 
 \section{Introduction}
 
+\begin{itemize}
+ \item{Some nice long paragraphs about place of coreference in NLP  }
+\item{Paragraphs about problems with coref   }
+ \item{Narrow down to loca/non-local coreference }  
+ \item{Very broadly what we intended to to}   
+ \item{Broadly what we have found   }
+\end{itemize}
+
+
 \section{Related Work} 
 
-\cite{tenney2019context}
+\begin{itemize}
+\item{some long paragraphs about history of coref. mention mention-ranking, and others}
+\item{end-to-end and higher order}
+\item{bert, bert for coref}
+\end{itemize}
 
-\cite{liu2019linguistic}
+\textcite{tenney2019context}
 
-\cite{joshi2019coref}
+\textcite{liu2019linguistic}
 
-\cite{lee2018higher}
+\textcite{joshi2019coref}
 
+\textcite{lee2018higher}
+
+\textcite{lee2017end}
 
 \section{Approach}
 
 
+\subsection{Span Representation and Long-Range Coreference}
+
+We attempt to investigate to what extent the span representations proposed using BERT embeddings in \textcite{joshi2019coref} can encode coreference information, and whether it is able to encode non-local coreference phenomena or is it just simply modeling local coreference.
+
 
 \section{Experiment}
 
+In order to analyse this, we consider 2 kinds of span representations:
+1. BERT-based span representations finetuned on OntoNotes in \textcite{joshi2019coref} with first and last word-pieces (concatenated with the attention version of all word pieces in the span).
+2. pre-trained BERT embeddings (not finetuned on OntoNotes) for all tokens within the mention span, which is then passed through a convolutional layer (with kernel width of 3 and 5) to incorporate the local context and followed by self-attention pooling operator to produce a fixed-length span representations. This is to model head words, inspired by approach from \textcite{tenney2019context}.
+
+Both span representations will be then used as inputs for coreference arc prediction task \textcite{liu2019linguistic}, where a probing model (in this case a simple FFNN) is used to predict coreference relations. The probing model is designed with limited capacity to focus on what information that can be extracted from the span representations. The probing model itself has a sigmoid output layer, which is trained to minimize binary cross entropy. Each negative samples (\textit{w\_entity}, \textit{wb}) will be generated for every positive samples (\textit{wa}, \textit{wb}) where \textit{wb} occurs after \textit{wa} and \textit{w\_entity} is a token that occurs before \textit{wb} and belong to a difference coreference cluster, to ensure a balanced data. By comparing the performance of the probing model using these two span representations, we can hypothesize to what extent that the proposed span representation in \textcite{joshi2019coref}  can capture coreference information. We will also experiment with mention span separation distance to see how the probing model performs and whether if there is a degradation of accuracy and F1 score of the probing model with distant spans.
+
+
 \section{Results}
+
+\begin{itemize}
+\item some nice plots here
+\item some tables here
+\end{itemize}
 
 \section{Discussion}
 
+\begin{itemize}
+\item long long analysis of what we've seen
+\item generalisations, parallels
+\item what do this results tell us about coref and nlp in general
+\item discussion of why they are the way the are
+\end{itemize}
+
 \subsection{Future Work}
+\begin{itemize}
+\item everything we don't have the time for
+\item mention other corpora that could be used for finetuning (Winogrande, GAP...)
+
+\end{itemize}
 
 \section{Conclusion}
 
-\nocite{*}
+\begin{itemize}
+\item so what have we learned about coref in general and local dependencies in particular
+\end{itemize}
 
 \printbibliography
 

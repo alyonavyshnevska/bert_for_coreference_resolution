@@ -55,50 +55,50 @@ def create_negative_positive_samples(path_jsonlines_file, output_path, debug_mod
             list_of_negative_clusters = list()
             list_of_positive_clusters = list()
 
+            if len(sample['clusters']) > 1:  # skip documents with only 1 cluster.
+                for cluster in sample['clusters']:
 
-            for cluster in sample['clusters']:
+                    # create positive samples: combinations of a cluster of length 2
+                    # combinations because we want only [[87,87],[86,86]] as positive example out of cluster
+                    # [[87,87], [86,86]]. ermutations would give us [[87,87],[86,86]], [[86,86],[87,87]]
+                    permutations = list(itertools.combinations(cluster, 2))
+                    permutations = [sorted(list(i)) for i in permutations]
+                    list_of_positive_clusters.extend(permutations)
 
-                # create positive samples: combinations of a cluster of length 2
-                # combinations because we want only [[87,87],[86,86]] as positive example out of cluster
-                # [[87,87], [86,86]]. ermutations would give us [[87,87],[86,86]], [[86,86],[87,87]]
-                permutations = list(itertools.combinations(cluster, 2))
-                permutations = [sorted(list(i)) for i in permutations]
-                list_of_positive_clusters.extend(permutations)
+                    # create random negative samples:
+                    # for each mention choose a mention from all mentions in this document,
+                    # that is not in the current cluster
+                    negative_cluster = list()
 
-                # create random negative samples:
-                # for each mention choose a mention from all mentions in this document,
-                # that is not in the current cluster
-                negative_cluster = list()
+                    for mention in cluster:
+                        #remove mentions from current cluster as option for a random negative examples
+                        options = [m for m in mentions if m not in cluster]
 
-                for mention in cluster:
-                    #remove mentions from current cluster as option for a random negative examples
-                    options = [m for m in mentions if m not in cluster]
+                        # choose a random mention from all mentions in this sample except from own cluster
+                        random_mention = random.choice(options)
+                        negative_cluster.append(sorted([mention, random_mention]))
 
-                    # choose a random mention from all mentions in this sample except from own cluster
-                    random_mention = random.choice(options)
-                    negative_cluster.append(sorted([mention, random_mention]))
+                    if debug_mode:
+                        print('\navaliable options for negative: ', options)
+                        print(cluster, '=========>', negative_cluster)
 
-                if debug_mode:
-                    print('\navaliable options for negative: ', options)
-                    print(cluster, '=========>', negative_cluster)
+                    list_of_negative_clusters.extend(negative_cluster)
 
-                list_of_negative_clusters.extend(negative_cluster)
+                # assert that every mention received one negative mention
+                assert len(mentions) == len(list_of_negative_clusters), 'Not every mention received a negative examples'
 
-            # assert that every mention received one negative mention
-            assert len(mentions) == len(list_of_negative_clusters), 'Not every mention received a negative examples'
-
-            #calculate distances
-            distances_positive = [[cluster, abs(cluster[1][0] - cluster[0][1])] for cluster in list_of_positive_clusters]
-            distances_negative = [[cluster, abs(cluster[1][0] - cluster[0][1])] for cluster in list_of_negative_clusters]
+                #calculate distances
+                distances_positive = [[cluster, abs(cluster[1][0] - cluster[0][1])] for cluster in list_of_positive_clusters]
+                distances_negative = [[cluster, abs(cluster[1][0] - cluster[0][1])] for cluster in list_of_negative_clusters]
 
 
-            # write negative_clusters to the sample
-            sample['negative_clusters'] = list_of_negative_clusters
-            sample['positive_clusters'] = list_of_positive_clusters
-            sample['distances_positive'] = distances_positive
-            sample['distances_negative'] = distances_negative
+                # write negative_clusters to the sample
+                sample['negative_clusters'] = list_of_negative_clusters
+                sample['positive_clusters'] = list_of_positive_clusters
+                sample['distances_positive'] = distances_positive
+                sample['distances_negative'] = distances_negative
 
-            output_samples.append(sample)
+                output_samples.append(sample)
 
         dump_jsonl(output_samples, output_path, append=False)
 

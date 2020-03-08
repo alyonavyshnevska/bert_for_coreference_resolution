@@ -29,10 +29,9 @@ def baseline_model(input_embeddings, kernel_size=3, attention_width=15):
 
     num_rows = input_embeddings.shape[1]
     num_cols = input_embeddings.shape[2]
-    channels = input_embeddings.shape[3]
 
     model = Sequential()
-    model.add(Conv2D(14, kernel_size, strides=(2, 2), padding='valid', input_shape = (num_rows, num_cols, channels)))
+    model.add(Conv1D(14, kernel_size, strides=(2), padding='valid', input_shape = (num_rows, num_cols)))
     model.add(SeqSelfAttention(attention_width=attention_width,
                                attention_activation='sigmoid'))
     model.compile(optimizer='adam',
@@ -44,5 +43,6 @@ def baseline_model(input_embeddings, kernel_size=3, attention_width=15):
 
 if __name__ == "__main__":
     batch_size = 16
-    input_embeddings = np.random.rand(batch_size, 50, 30, 5)   #randomly chosen input data (batch, rows, cols, channels)
-    model = baseline_model(input_embeddings, kernel_size=3, attention_width=15)
+    # 1 sampe in one row of n integers. Here n is e.g. 30
+    input_embeddings = np.random.rand(batch_size, 1, 30)   #randomly chosen input data (batch, rows, cols)
+    model = baseline_model(input_embeddings, kernel_size=1, attention_width=15)

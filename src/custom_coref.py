@@ -4,6 +4,7 @@ from __future__ import print_function
 
 import sys
 import json
+import os
 
 import tensorflow as tf
 import util
@@ -81,5 +82,13 @@ class CustomCorefIndependent(CorefModel):
                 head_attn_reps = tf.matmul(mention_word_scores, context_outputs) # [K, T]
                 span_emb_list.append(head_attn_reps)
 
-                span_emb = tf.concat(span_emb_list, 1) # [k, emb]
-        return span_emb # [k, emb]
+        span_emb = tf.concat(span_emb_list, 1) # [k, emb]
+        return span_emb  # [k, emb]
+
+    def restore_init(self, session):
+        # Use train_bert_x as experiment name
+        tvars = tf.trainable_variables()
+        assignment_map, initialized_variable_names = modeling.get_assignment_map_from_checkpoint(tvars, self.config['tf_checkpoint'])
+        init_from_checkpoint = tf.train.init_from_checkpoint
+        print("Restoring from {}".format(self.config['tf_checkpoint']))
+        init_from_checkpoint(self.config['init_checkpoint'], assignment_map)

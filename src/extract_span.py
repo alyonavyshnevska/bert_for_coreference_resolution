@@ -43,6 +43,7 @@ if __name__ == "__main__":
 
                 parent_child_reps = tf.concat(parent_child_list, 0).eval()
                 hf.create_dataset("span_representations", data=parent_child_reps, compression="gzip", compression_opts=0, shuffle=True, chunks=True)
-                print(parent_child_reps[:100,-2])
-                print(parent_child_reps[:100,-1])
+                # print(parent_child_reps[:100,-2])
+                # print(parent_child_reps[:100,-1])
+                print(parent_child_reps[0,:])
                 print(parent_child_reps.shape)

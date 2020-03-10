@@ -49,7 +49,7 @@ if __name__ == "__main__":
                 parent_child_emb_neg = span_util.get_parent_child_emb_baseline(neg_clusters, candidate_span_emb, candidate_starts, candidate_ends, "negative")
                 parent_child_list.extend([parent_child_emb_pos, parent_child_emb_neg])
 
-                if (example_num+1) % 500 == 0 or (example_num+1) == num_lines:
+                if (example_num+1) % 350 == 0 or (example_num+1) == num_lines:
                     write_count += 1
                     filename = output_prefix + "_" + str(write_count) + ".h5"
                     out_filename = os.path.join(output_dir, filename)
@@ -58,3 +58,4 @@ if __name__ == "__main__":
                     with h5py.File(out_filename, 'w') as hf:
                         hf.create_dataset("span_representations", data=parent_child_reps, compression="gzip", compression_opts=0, shuffle=True, chunks=True)
                     parent_child_list = []
+                    print(parent_child_reps.shape)

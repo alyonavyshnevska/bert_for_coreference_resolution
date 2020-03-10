@@ -67,8 +67,12 @@ def get_parent_child_emb_baseline(clusters, span_emb, span_starts, span_ends, la
                                        np.where(span_ends <= coref_relation[1][1]))
         else:
             child_idx = []
+   
+        span_dist_1 = coref_relation[0][1] - coref_relation[0][0] + 1
+        span_dist_2 = coref_relation[1][1] - coref_relation[1][0] + 1
+        span_flag = span_dist_1 <= max_span_width and span_dist_2 <= max_span_width
 
-        if len(parent_idx) > 0 and len(child_idx) > 0:
+        if len(parent_idx) > 0 and len(child_idx) > 0 and span_flag:
             parent_start_emb = tf.reshape(span_emb[parent_idx][0,:embed_dim], [1,-1]) # take embedding of first wordpieces
             parent_body_emb = tf.reshape(span_emb[parent_idx][:,embed_dim:], [1,-1])  # take embedding of all wordpieces after the first one (until end wordpieces) and flatten
             parent_emb = tf.concat([parent_start_emb, parent_body_emb], 1)

@@ -27,15 +27,18 @@ def get_parent_child_emb(clusters, span_emb, span_starts, span_ends, label_type)
             span_emb_list.append(parent_child_span)
             dist_list.append(dist)
 
-    parent_child_emb = tf.concat(span_emb_list, 0)
-    mention_dist = tf.dtypes.cast(tf.stack(dist_list, 0), tf.float32)
-    mention_dist = tf.reshape(mention_dist, [-1,1])
+    if span_emb_list:
+        parent_child_emb = tf.concat(span_emb_list, 0)
+        mention_dist = tf.dtypes.cast(tf.stack(dist_list, 0), tf.float32)
+        mention_dist = tf.reshape(mention_dist, [-1,1])
 
-    if label_type == "positive":
-        gold_label = tf.ones([parent_child_emb.shape[0],1], tf.float32)
-    elif label_type == "negative":
-        gold_label = tf.zeros([parent_child_emb.shape[0],1], tf.float32)
-    return tf.concat([parent_child_emb, mention_dist, gold_label], 1)
+        if label_type == "positive":
+            gold_label = tf.ones([parent_child_emb.shape[0],1], tf.float32)
+        elif label_type == "negative":
+            gold_label = tf.zeros([parent_child_emb.shape[0],1], tf.float32)
+        return tf.concat([parent_child_emb, mention_dist, gold_label], 1)
+    else:
+        return None
 
 
 def get_parent_child_emb_baseline(clusters, span_emb, span_starts, span_ends, label_type):
@@ -73,13 +76,15 @@ def get_parent_child_emb_baseline(clusters, span_emb, span_starts, span_ends, la
         span_flag = span_dist_1 <= max_span_width and span_dist_2 <= max_span_width
 
         if len(parent_idx) > 0 and len(child_idx) > 0 and span_flag:
-            parent_start_emb = tf.reshape(span_emb[parent_idx][0,:embed_dim], [1,-1]) # take embedding of first wordpieces
-            parent_body_emb = tf.reshape(span_emb[parent_idx][:,embed_dim:], [1,-1])  # take embedding of all wordpieces after the first one (until end wordpieces) and flatten
-            parent_emb = tf.concat([parent_start_emb, parent_body_emb], 1)
+            # parent_start_emb = tf.reshape(span_emb[parent_idx][0,:embed_dim], [1,-1]) # take embedding of first wordpieces
+            # parent_body_emb = tf.reshape(span_emb[parent_idx][:,embed_dim:], [1,-1])  # take embedding of all wordpieces after the first one (until end wordpieces) and flatten
+            # parent_emb = tf.concat([parent_start_emb, parent_body_emb], 1)
+            parent_emb = tf.reshape(span_emb[parent_idx][:, embed_dim:], [1, -1])
 
-            child_start_emb = tf.reshape(span_emb[child_idx][0,:embed_dim], [1,-1]) 
-            child_body_emb = tf.reshape(span_emb[child_idx][:,embed_dim:], [1,-1])
-            child_emb = tf.concat([child_start_emb, child_body_emb], 1)
+            # child_start_emb = tf.reshape(span_emb[child_idx][0,:embed_dim], [1,-1]) 
+            # child_body_emb = tf.reshape(span_emb[child_idx][:,embed_dim:], [1,-1])
+            # child_emb = tf.concat([child_start_emb, child_body_emb], 1)
+            child_emb = tf.reshape(span_emb[child_idx][:, embed_dim:], [1, -1])
 
             # Pad token representations w.r.t to max span width
             parent_paddings = [[0, 0], [0, max_span_width*embed_dim - tf.shape(parent_emb)[1]]]

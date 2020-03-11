@@ -19,7 +19,7 @@ def dump_jsonl(data, output_path, append=False):
 
 
 
-def create_negative_positive_samples(path_jsonlines_file, output_path, debug_mode=True):
+def create_negative_positive_samples(path_jsonlines_file, output_path, debug_mode=False):
     '''
 
     :param path_jsonlines_file: File with clusters of coreferent mentions
@@ -105,18 +105,17 @@ if __name__ == '__main__':
 
     input_file = sys.argv[1]
     output_file = sys.argv[2]
-    debug_mode = False
 
-    # insert verbose as sys.args[3] to print created negative clusters
+    create_negative_positive_samples(input_file, output_file)
+
+    print(f'Negative and Positive samples written into {output_file}.')
+
+
     if '--verbose' in sys.argv:
-        debug_mode = True
-    create_negative_positive_samples(input_file, output_file, debug_mode=debug_mode)
-
-
-    # if '--verbose' in sys.argv:
-    #     with jsonlines.open(output_file) as reader:
-    #         for sample in reader.iter(type=dict, skip_invalid=True):
-    #             print("\nClusters:")
-    #             for i in sample['clusters']:
-    #                 print(i)
-    #             print("Negative Clusters: ", sample['negative_clusters'])
+        with jsonlines.open(output_file) as reader:
+            for sample in reader.iter(type=dict, skip_invalid=True):
+                print("\nClusters:")
+                for i in sample['clusters']:
+                    print(i)
+                print("Negative Clusters: ", sample['negative_clusters'])
+                print("Positive Clusters: ", sample['positive_clusters'])

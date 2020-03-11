@@ -13,6 +13,8 @@ import util
 import h5py
 from custom_coref import CustomCorefIndependent
 
+EMBED_DIM = 768
+
 if __name__ == "__main__":
     config = util.initialize_from_env()
     log_dir = config["log_dir"]
@@ -28,7 +30,8 @@ if __name__ == "__main__":
     saver = tf.train.Saver()
 
     with tf.Session() as session:
-        model.restore(session)
+        session.run(tf.global_variables_initializer())
+        model.restore_init(session)
 
         with open(input_filename) as input_file:
             parent_child_list = []
@@ -40,9 +43,10 @@ if __name__ == "__main__":
                 tensorized_example = model.tensorize_example(example, is_training=False)
                 feed_dict = {i:t for i,t in zip(model.input_tensors, tensorized_example)}
                 candidate_span_emb, candidate_starts, candidate_ends = session.run(model.embeddings, feed_dict=feed_dict)
+                candidate_span_emb = candidate_span_emb[:, :2*EMBED_DIM]  # exclude attention head and span features
                 pos_clusters, neg_clusters = example["distances_positive"], example["distances_negative"]
-                parent_child_emb_pos = span_util.get_parent_child_emb(pos_clusters, candidate_span_emb, candidate_starts, candidate_ends, "positive")
-                parent_child_emb_neg = span_util.get_parent_child_emb(neg_clusters, candidate_span_emb, candidate_starts, candidate_ends, "negative")
+                parent_child_emb_pos = span_util.get_parent_child_emb_baseline(pos_clusters, candidate_span_emb, candidate_starts, candidate_ends, "positive")
+                parent_child_emb_neg = span_util.get_parent_child_emb_baseline(neg_clusters, candidate_span_emb, candidate_starts, candidate_ends, "negative")
                 parent_child_list.extend([parent_child_emb_pos, parent_child_emb_neg])
 
                 if (example_num+1) % 350 == 0 or (example_num+1) == num_lines:

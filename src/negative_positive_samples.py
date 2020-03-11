@@ -60,6 +60,7 @@ def create_negative_positive_samples(path_jsonlines_file, output_path, debug_mod
 
                     # generate a positive example out of two random mentions in a cluster
                     positive_example = sorted(random.sample(cluster, 2))
+                    list_of_positive_clusters.append((positive_example))
 
                     # create random negative samples:
                     # for each mention choose a mention from all mentions in this document,

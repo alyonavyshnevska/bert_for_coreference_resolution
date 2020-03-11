@@ -58,32 +58,27 @@ def create_negative_positive_samples(path_jsonlines_file, output_path, debug_mod
             if len(sample['clusters']) > 1:  # skip documents with only 1 cluster.
                 for cluster in sample['clusters']:
 
-                    # create positive samples: combinations of a cluster of length 2
-                    # combinations because we want only [[87,87],[86,86]] as positive example out of cluster
-                    # [[87,87], [86,86]]. ermutations would give us [[87,87],[86,86]], [[86,86],[87,87]]
-                    permutations = list(itertools.combinations(cluster, 2))
-                    permutations = [sorted(list(i)) for i in permutations]
-                    list_of_positive_clusters.extend(permutations)
+                    # generate a positive example out of two random mentions in a cluster
+                    positive_example = sorted(random.sample(cluster, 2))
 
                     # create random negative samples:
                     # for each mention choose a mention from all mentions in this document,
                     # that is not in the current cluster
-                    negative_cluster = list()
-
                     for mention in cluster:
                         #remove mentions from current cluster as option for a random negative examples
                         options = [m for m in mentions if m not in cluster]
 
                     # choose a random mention from all mentions in this sample except from own cluster
                     random_mention = random.choice(options)
+
                     # only generate one negative example for cluster
-                    negative_cluster.append(sorted([cluster[0], random_mention]))
+                    list_of_negative_clusters.append(sorted([positive_example[0], random_mention]))
 
                     if debug_mode:
-                        print('\navaliable options for negative: ', options)
-                        print(cluster, '=========>', negative_cluster)
+                        # print('\navaliable options for negative: ', options)
+                        print(cluster, '=========>', 'positive: ', positive_example,
+                              'negative: ', sorted([positive_example[0], random_mention]))
 
-                    list_of_negative_clusters.extend(negative_cluster)
 
                 # assert that every mention received one negative mention
                 # assert len(mentions) == len(list_of_negative_clusters), 'Not every mention received a negative examples'

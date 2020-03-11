@@ -1,5 +1,5 @@
 from keras.models import Sequential
-from keras.layers import Dense, Conv1D, Conv2D, Embedding
+from keras.layers import Dense, Conv1D, Conv2D, Embedding, Flatten, Reshape
 from keras_self_attention import SeqSelfAttention
 from keras import optimizers
 from keras import backend as K
@@ -31,7 +31,7 @@ def get_args():
 
 
 
-def train_baseline_model(x_train, y_train, x_val, y_val, x_test, y_test, kernel_size=3):
+def train_baseline_model(x_train, y_train, x_val, y_val, x_test, y_test, kernel_size=3, num_filters = 768):
     '''
 
         :param input_file: arrays of
@@ -53,46 +53,54 @@ def train_baseline_model(x_train, y_train, x_val, y_val, x_test, y_test, kernel_
     Self-attention library:
     https://pypi.org/project/keras-self-attention/
 
-    :param input_embeddings: all wordpieces of one mention of size 30*768
-
     :param kernel_size: kernel size of the convolutional layer kernel. Choose between 3 and 5.
 
     :param attention_width: The global context may be too broad for one piece of data.
     This parameter attention_width controls the width of the local context
 
+    :param num_filters:
+
     :return: mention_encoding
 
     '''
 
-    mention1 = x_train[0]
-    mention2 = x_train[1]
+    x_train = x_train.reshape((x_train.shape[0], 23040, 2))
+    x_val = x_val.reshape((x_val.shape[0], 23040, 2))
+    print(f'shape of x_train after reshape {x_train.shape}')
+    # x_train = K.transpose(x_train)
 
-    # transpose (mention1,mention2)
-    transposed = K.transpose([mention1, mention2])
+    # x_train = np.expand_dims(x_train, axis=2)
 
-    num_rows = transposed[0]
-    num_cols = transposed[1]
+    num_rows = int(x_train.shape[1])
+    num_cols = int(x_train.shape[2])
+    # num_rows = mentions.shape[0]
+    # num_cols = mentions.shape[1]
 
     model = Sequential()
-    model.add(Conv1D(14, kernel_size, strides=(1), padding='same', input_shape = (num_rows, num_cols)))
-    model.add(SeqSelfAttention(attention_activation='sigmoid'))
-    model.add(Dense(units=1024, activation='relu', input_dim=x_train.shape[1], use_bias=True, kernel_initializer='he_normal',
+    model.add(Conv1D(124, kernel_size, strides=(1), padding='same', input_shape = (num_rows, num_cols)))
+    # Self-attention
+    model.add(Dense(units=1024, activation='relu', use_bias=True, kernel_initializer='he_normal',
               bias_initializer='zeros'))  # still need to check whether 1024 is correct, little details about this.
-    model.add(Dense(units=1, activation='sigmoid'))
+    model.add(Flatten())
+    model.add(Dense(1, activation='sigmoid'))
+    model.summary()
 
     opt = optimizers.Adam(lr=0.001)
 
     callbacks = [EarlyStopping(monitor='val_loss', min_delta=0, patience=3, verbose=0, mode='auto'), ComputeTestF1(),
                  CSVLogger(log_name, separator='\t')]
 
+
+
     # Compile model
     model.compile(loss='binary_crossentropy', optimizer=opt, metrics=['accuracy'])
     model.fit(x_train, y_train, epochs=50, batch_size=10, validation_data=(x_val, y_val), callbacks=callbacks)
     val_loss_and_metrics = model.evaluate(x_val, y_val, batch_size=x_val.shape[0])
     print(val_loss_and_metrics)
-    if args.test_data is not None:
-        test_loss_and_metrics = model.evaluate(x_test, y_test, batch_size=x_test.shape[0])
-        print(test_loss_and_metrics)
+    # If using test: x_test.reshape((x_test.shape[0], 23040, 2))
+    # if args.test_data is not None:
+    #     test_loss_and_metrics = model.evaluate(x_test, y_test, batch_size=x_test.shape[0])
+    #     print(test_loss_and_metrics)
 
 
 
@@ -119,5 +127,8 @@ if __name__ == "__main__":
             x_test = test_data[:, :-2]
             y_test = test_data[:, -1].astype(int)
 
+
+    print(f'shape of x_train: {x_train.shape}')
+    print(f'shape of y train {y_train.shape}')
 
     train_baseline_model(x_train, y_train, x_val, y_val, x_test, y_test, kernel_size=3)

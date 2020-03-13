@@ -19,8 +19,8 @@ MAX_SPAN_WIDTH = 30
 class ComputeTestF1(Callback):
     """Custom callback to calculate F1 score"""
     def on_epoch_end(self, epochs, logs):
-        val_predict = (np.asarray(self.model.predict(self.validation_data[0]))).round()
-        val_target = self.validation_data[1]
+        val_predict = (np.asarray(self.model.predict([self.validation_data[0], self.validation_data[1]]))).round()
+        val_target = self.validation_data[2]
         logs['val_f1'] = f1_score(val_target, val_predict)
 
 

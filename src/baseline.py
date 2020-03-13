@@ -91,7 +91,7 @@ def get_args():
 
 if __name__ == "__main__":
     args = get_args()
-    log_name = args.exp_name + '.log'
+    log_name = args.exp_name + '.tsv'
     embed_dim = proj_dim = args.embed_dim
     filenames = glob.glob(args.train_data + "/*.h5")
     train_data = []

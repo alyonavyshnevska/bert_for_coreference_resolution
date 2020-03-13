@@ -1,5 +1,5 @@
 from keras.models import Sequential
-from keras.layers import Dense, Conv1D, Conv2D, Embedding, Flatten, Reshape
+from keras.layers import Dense, Conv1D, Flatten, Reshape
 from keras_self_attention import SeqSelfAttention
 from keras import optimizers
 from keras import backend as K
@@ -7,6 +7,8 @@ from keras.callbacks import EarlyStopping, CSVLogger, Callback
 from sklearn.metrics import f1_score
 import numpy as np
 import h5py
+import tensorflow as tf
+import math
 
 import argparse
 
@@ -28,6 +30,7 @@ def get_args():
     parser.add_argument('--exp_name', type=str, default=None)
     args = parser.parse_args()
     return args
+
 
 
 
@@ -66,19 +69,13 @@ def train_baseline_model(x_train, y_train, x_val, y_val, x_test, y_test, kernel_
 
     x_train = x_train.reshape((x_train.shape[0], 23040, 2))
     x_val = x_val.reshape((x_val.shape[0], 23040, 2))
-    print(f'shape of x_train after reshape {x_train.shape}')
-    # x_train = K.transpose(x_train)
-
-    # x_train = np.expand_dims(x_train, axis=2)
 
     num_rows = int(x_train.shape[1])
     num_cols = int(x_train.shape[2])
-    # num_rows = mentions.shape[0]
-    # num_cols = mentions.shape[1]
 
     model = Sequential()
     model.add(Conv1D(124, kernel_size, strides=(1), padding='same', input_shape = (num_rows, num_cols)))
-    # Self-attention
+    model.add(SeqSelfAttention())
     model.add(Dense(units=1024, activation='relu', use_bias=True, kernel_initializer='he_normal',
               bias_initializer='zeros'))  # still need to check whether 1024 is correct, little details about this.
     model.add(Flatten())
@@ -89,6 +86,7 @@ def train_baseline_model(x_train, y_train, x_val, y_val, x_test, y_test, kernel_
 
     callbacks = [EarlyStopping(monitor='val_loss', min_delta=0, patience=3, verbose=0, mode='auto'), ComputeTestF1(),
                  CSVLogger(log_name, separator='\t')]
+
 
 
 
@@ -127,8 +125,5 @@ if __name__ == "__main__":
             x_test = test_data[:, :-2]
             y_test = test_data[:, -1].astype(int)
 
-
-    print(f'shape of x_train: {x_train.shape}')
-    print(f'shape of y train {y_train.shape}')
 
     train_baseline_model(x_train, y_train, x_val, y_val, x_test, y_test, kernel_size=3)

@@ -3,6 +3,7 @@ import sys
 import tensorflow as tf
 import numpy as np
 import argparse
+import glob
 
 from keras.models import Sequential
 from keras.layers.core import Dense, Activation
@@ -34,10 +35,15 @@ if __name__ == "__main__":
     args = get_args()
     log_name = args.exp_name + '.log'
 
-    with h5py.File(args.train_data, 'r') as f:
-        train_data = f.get('span_representations').value
-        x_train = train_data[:, :-2]
-        y_train = train_data[:, -1].astype(int)
+    filenames = glob.glob(args.train_data + "/*.h5")
+    train_data = []
+    print(filenames)
+    for fn in filenames:
+        with h5py.File(fn, 'r') as f:
+            train_data.append(f.get('span_representations').value)
+    train_data = np.concatenate(train_data, axis=0)
+    x_train = train_data[:, :-2]
+    y_train = train_data[:, -1].astype(int)
 
     with h5py.File(args.val_data, 'r') as f:
         val_data = f.get('span_representations').value

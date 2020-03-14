@@ -131,7 +131,7 @@ if __name__ == "__main__":
     # print(mention_1.shape)
 
     # Shared CNN for parent and child span representations as a projection of local context
-    cnn_projection = Conv1D(proj_dim, kernel_size=k, strides=1, padding='same', input_shape=(MAX_SPAN_WIDTH, embed_dim))
+    cnn_projection = Conv1D(proj_dim, kernel_size=k, strides=1, padding='same', kernel_initializer='he_normal',input_shape=(MAX_SPAN_WIDTH, embed_dim))
     encoded_parent_span = cnn_projection(parent_span)  # [batch_size, max_span_width, proj_dim]
     encoded_child_span = cnn_projection(child_span)  # [batch_size, max_span_width, proj_dim]
 
@@ -163,7 +163,7 @@ if __name__ == "__main__":
         if test_data_flag:
             test_loss_and_metrics = model.evaluate([test_parent_emb, test_child_emb], y_test, batch_size=x_test.shape[0])
             test_predict = (np.asarray(model.predict([test_parent_emb, test_child_emb]))).round()
-            val_target = y_test
-            best_val_f1 = f1_score(test_target, test_predict)
+            test_target = y_test
+            best_test_f1 = f1_score(test_target, test_predict)
             tsv_writer.writerow(['best_test_acc', test_loss_and_metrics[1]])
             tsv_writer.writerow(['best_test_f1', best_test_f1])

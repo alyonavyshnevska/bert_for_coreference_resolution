@@ -5,6 +5,7 @@ import numpy as np
 import argparse
 import glob
 import keras
+import csv
 
 from keras.models import Model
 from keras.layers import Dense, Conv1D, Input
@@ -95,6 +96,7 @@ if __name__ == "__main__":
     embed_dim = proj_dim = args.embed_dim
     filenames = glob.glob(args.train_data + "/*.h5")
     train_data = []
+    test_data_flag = True if args.test_data is not None else False
     
     for fn in filenames:
         with h5py.File(fn, 'r') as f:
@@ -112,7 +114,7 @@ if __name__ == "__main__":
         val_parent_emb = x_val[:, :MAX_SPAN_WIDTH*embed_dim].reshape(x_val.shape[0], MAX_SPAN_WIDTH, embed_dim)
         val_child_emb = x_val[:, MAX_SPAN_WIDTH*embed_dim:].reshape(x_val.shape[0], MAX_SPAN_WIDTH, embed_dim)
 
-    if args.test_data is not None:
+    if test_data_flag:
         with h5py.File(args.test_data, 'r') as f:
             test_data = f.get('span_representations').value
             x_test = test_data[:, :-2]
@@ -129,7 +131,7 @@ if __name__ == "__main__":
     # print(mention_1.shape)
 
     # Shared CNN for parent and child span representations as a projection of local context
-    cnn_projection = Conv1D(proj_dim, kernel_size=k, strides=1, padding='same', input_shape=(MAX_SPAN_WIDTH, embed_dim))
+    cnn_projection = Conv1D(proj_dim, kernel_size=k, strides=1, padding='same', kernel_initializer='he_normal',input_shape=(MAX_SPAN_WIDTH, embed_dim))
     encoded_parent_span = cnn_projection(parent_span)  # [batch_size, max_span_width, proj_dim]
     encoded_child_span = cnn_projection(child_span)  # [batch_size, max_span_width, proj_dim]
 
@@ -143,14 +145,25 @@ if __name__ == "__main__":
     predictions = Dense(units=1, activation='sigmoid')(hidden_layer)
 
     opt = optimizers.Adam(lr=0.001)
-    callbacks = [EarlyStopping(monitor='val_loss', min_delta=0, patience=3, verbose=0, mode='auto'), ComputeTestF1(), CSVLogger(log_name, separator='\t')]
+    callbacks = [EarlyStopping(monitor='val_loss', min_delta=0, patience=3, verbose=0, mode='auto', restore_best_weights=True), ComputeTestF1(), CSVLogger(log_name, separator='\t')]
 
     model = Model(inputs=[parent_span, child_span], output=predictions)
     model.compile(loss='binary_crossentropy', optimizer=opt, metrics=['accuracy'])
-    model.fit([train_parent_emb, train_child_emb], y_train, epochs=50, batch_size=10, validation_data=([val_parent_emb, val_child_emb], y_val), callbacks=callbacks)
-    val_loss_and_metrics = model.evaluate([val_parent_emb, val_child_emb], y_val, batch_size=x_val.shape[0])
-    print(val_loss_and_metrics)
-    if args.test_data is not None:
-        test_loss_and_metrics = model.evaluate([test_parent_emb, test_child_emb], y_test, batch_size=x_test.shape[0])
-        print(test_loss_and_metrics)
+    model.fit([train_parent_emb, train_child_emb], y_train, epochs=50, batch_size=128, validation_data=([val_parent_emb, val_child_emb], y_val), callbacks=callbacks)
 
+    with open(log_name, 'a') as out_file:
+        tsv_writer = csv.writer(out_file, delimiter='\t')
+        val_loss_and_metrics = model.evaluate([val_parent_emb, val_child_emb], y_val, batch_size=x_val.shape[0])
+        val_predict = (np.asarray(model.predict([val_parent_emb, val_child_emb]))).round()
+        val_target = y_val
+        best_val_f1 = f1_score(val_target, val_predict)
+        tsv_writer.writerow(['best_val_acc', val_loss_and_metrics[1]])
+        tsv_writer.writerow(['best_val_f1', best_val_f1])
+
+        if test_data_flag:
+            test_loss_and_metrics = model.evaluate([test_parent_emb, test_child_emb], y_test, batch_size=x_test.shape[0])
+            test_predict = (np.asarray(model.predict([test_parent_emb, test_child_emb]))).round()
+            test_target = y_test
+            best_test_f1 = f1_score(test_target, test_predict)
+            tsv_writer.writerow(['best_test_acc', test_loss_and_metrics[1]])
+            tsv_writer.writerow(['best_test_f1', best_test_f1])

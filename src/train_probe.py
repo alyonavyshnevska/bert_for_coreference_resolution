@@ -4,6 +4,7 @@ import tensorflow as tf
 import numpy as np
 import argparse
 import glob
+import csv
 
 from keras.models import Sequential
 from keras.layers.core import Dense, Activation
@@ -34,10 +35,10 @@ def get_args():
 if __name__ == "__main__":
     args = get_args()
     log_name = args.exp_name + '.tsv'
-
     filenames = glob.glob(args.train_data + "/*.h5")
     train_data = []
-    print(filenames)
+    test_data_flag = True if args.test_data is not None else False
+
     for fn in filenames:
         with h5py.File(fn, 'r') as f:
             train_data.append(f.get('span_representations').value)
@@ -50,7 +51,7 @@ if __name__ == "__main__":
         x_val = val_data[:, :-2]
         y_val = val_data[:, -1].astype(int)
 
-    if args.test_data is not None:
+    if test_data_flag:
         with h5py.File(args.test_data, 'r') as f:
             test_data = f.get('span_representations').value
             x_test = test_data[:, :-2]
@@ -62,13 +63,25 @@ if __name__ == "__main__":
     model.add(Dense(units=1, activation='sigmoid'))
     opt = optimizers.Adam(lr=0.001)
 
-    callbacks = [EarlyStopping(monitor='val_loss', min_delta=0, patience=3, verbose=0, mode='auto'), ComputeTestF1(), CSVLogger(log_name, separator='\t')]
+    callbacks = [EarlyStopping(monitor='val_loss', min_delta=0, patience=3, verbose=0, mode='auto', restore_best_weights=True), ComputeTestF1(), CSVLogger(log_name, separator='\t')]
 
     # Compile model
     model.compile(loss='binary_crossentropy', optimizer=opt, metrics=['accuracy'])
-    model.fit(x_train, y_train, epochs=50, batch_size=10, validation_data=(x_val, y_val), callbacks=callbacks)
-    val_loss_and_metrics = model.evaluate(x_val, y_val, batch_size=x_val.shape[0])
-    print(val_loss_and_metrics)
-    if args.test_data is not None:
-        test_loss_and_metrics = model.evaluate(x_test, y_test, batch_size=x_test.shape[0])
-        print(test_loss_and_metrics)
+    model.fit(x_train, y_train, epochs=50, batch_size=128, validation_data=(x_val, y_val), callbacks=callbacks)
+
+    with open(log_name, 'a') as out_file:
+        tsv_writer = csv.writer(out_file, delimiter='\t')
+        val_loss_and_metrics = model.evaluate(x_val, y_val, batch_size=x_val.shape[0])
+        val_predict = (np.asarray(model.predict(x_val))).round()
+        val_target = y_val
+        best_val_f1 = f1_score(val_target, val_predict)
+        tsv_writer.writerow(['best_val_acc', val_loss_and_metrics[1]])
+        tsv_writer.writerow(['best_val_f1', best_val_f1])
+
+        if test_data_flag:
+            test_loss_and_metrics = model.evaluate(x_test, y_test, batch_size=x_test.shape[0])
+            test_predict = (np.asarray(model.predict(x_test))).round()
+            test_target = y_test
+            best_test_f1 = f1_score(test_target, test_predict)
+            tsv_writer.writerow(['best_test_acc', test_loss_and_metrics[1]])
+            tsv_writer.writerow(['best_test_f1', best_test_f1])

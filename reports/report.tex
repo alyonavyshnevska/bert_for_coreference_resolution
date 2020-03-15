@@ -30,7 +30,7 @@
 
 
 \title{{\LARGE Coreference Resolution}\\[1.5mm]
-{\large Working Title}\\[1.5mm]} %%% Fill in your project title
+{\large Working Title, First Draft: Content, not Wording}\\[1.5mm]} %%% Span Representation And Long-Range Coreference
 \author{Patrick Kahardipraja, Olena Vyshnevska}%%% Fill in your name 
 \date{} % delete this line to display the current date
 
@@ -43,34 +43,55 @@
 
 \section{Introduction}
 
-\begin{itemize}
- \item{Some nice long paragraphs about place of coreference in NLP  }
-\item{Paragraphs about problems with coref   }
- \item{Narrow down to loca/non-local coreference }  
- \item{Very broadly what we intended to to}   
- \item{Broadly what we have found   }
-\end{itemize}
+\subsection{Role of Coreference Resolution in NLP}
+Some nice long paragraphs about place of coreference in NLP  
+
+\subsection{Challenges in the Field}
+Paragraphs about problems with coref   
+Narrow down to loca/non-local coreference 
+
+
+\subsection{Our Proposed Solution}
+Very broadly what we intended to to
+Broadly what we have found
+
+The code is available on GitHub \footnote{\url{https://github.com/alyonavyshnevska/bert_for_coreference_resolution}}.
 
 
 \section{Related Work} 
 
-\begin{itemize}
-\item{some long paragraphs about history of coref. mention mention-ranking, and others}
-\item{end-to-end and higher order}
-\item{bert, bert for coref} 
-\end{itemize}
+\subsection{Approaches to Coreference Resolution}
+some paragraphs about mention mention-ranking, and others
 
-\textcite{tenney2019context} Probing Model
+\subsection{State of the Art Coreference Models}
+%end-to-end and higher order
+%bert, bert for coref
 
-\textcite{liu2019linguistic}  Ling Knowledge and Transfer, Negative Samples
+\textcite{devlin2019bert} made a significant break-through with their pre-trained BERT model. It can be finetuned with one additional output layer
+to create state-of-the-art models for a wide
+range of tasks, such as question answering and language inference, without substantial taskspecific architecture modifications. BERT's training examples consist of 128 and 512 word pieces. Such passage-level training has been an important improvement over the previous methods. It helps the model learn dependencies over text sequences longer than one sentence, such as the previous state of the art model ELMo \parencite{peters2018elmo}.
 
-\textcite{joshi2019coref} Cert for coref
+\textcite{devlin2019bert} have extended the influential ELMo-based coreference model by \textcite{lee2018higher}. The authors have achieved a 3.9\% improvement on OntoNotes by replacing ELMo embeddings with BERT embeddings. 
 
-\textcite{lee2018higher} Higher-Order
+\subsection{Coreference Arc Prediction Task}
+% \textcite{liu2019linguistic}  Ling Knowledge and Transfer, Negative Samples, arc prediction task
 
-\textcite{lee2017end} End-to-End
+ \textcite{liu2019linguistic} found that frozen contextual represenations fed into linear models can show similar levels of performance as state of the art task-specific models on many NLP tasks. The authors use probing models, also known as auxiliary or diagnostic classifiers \parencite{shi2016string, kadar2017representation} to analyse the linguistic information within contextual word representations. To test how the probing model performs in comparison to ELMo, the authors tested the models on a coreference arc prediction task, where the model predicts whether two mentions corefer. The Ontonotes dataset was used. To train the probing model the authors generate negative examples, where mentions that do not corefer are fed into the probing model alongside the mentions that do corefer. In our work we will also build our experiments similar to coreference arc prediction tasks suggested by the authors.
 
-\textcite{devlin2019bert} Bert
+\subsection{Probing Model}
+
+%\textcite{tenney2019context} Probing Model
+
+
+\textcite{tenney2019context} introduced edge probing task design investigated and found that existing models trained on language modeling and translation produce strong representations for syntactic phenomena, but only offer comparably small improvements on semantic tasks over a non-contextual baseline. For coreference resolution, the models had to determining whether two spans of tokens refer to the same entity. In order to investigate how good the contextual word representation models can model long-range dependencies, the authors used a fixed-width convolutional layer on top of the word representations to build spans of word pieces. The authors concluded that using the CNN layers on top of BERT-large pretarined model has performed particularly well on difficult semantic tasks, such as coreference resolution. Hence, in out work we will also follow the approach of the authors to construct our baseline. 
+
+%\textcite{joshi2019coref} bert for coref
+
+%\textcite{lee2018higher} Higher-Order
+
+%\textcite{lee2017end} End-to-End
+
+%\textcite{devlin2019bert} Bert
 
 \section{Approach}
 
@@ -96,8 +117,8 @@ We use OntoNotes (English) generating the positive and negative examples for the
 We evaluate the two models on the English OntoNotes 5.0 dataset \cite{conll}. 
 
 
+\subsection{Implementation and Hyperparameters}. We extract the span representations from the coreference model by \textcite{joshi2019coref}. The model has been fine tuned on OntoNotes English data for 20 epochs using a dropout of 0.3, and learning rates of $1 * 10 ^{-5}$ and $2 * 10 ^{-4} $ with linear decay for the BERT parameters and the task parameters respectively. A batch size of 1 document has been used. 
 
-\subsection{Implementation and Hyperparameters}. We extract the span representations from the coreference model by \textcite{joshi2019coref}. The code is available on GitHub \footnote{https://github.com/mandarjoshi90/coref/}. The model has been fine tuned on OntoNotes English data for 20 epochs using a dropout of 0.3, and learning rates of $1 * 10 ^{-5}$ and $2 * 10 ^{-4} $ with linear decay for the BERT parameters and the task parameters respectively. A batch size of 1 document has been used. 
 
 \subsection{Baseline}
 

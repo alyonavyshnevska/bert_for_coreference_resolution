@@ -48,14 +48,23 @@ Some nice long paragraphs about place of coreference in NLP
 
 \subsection{Challenges in the Field}
 Paragraphs about problems with coref   
-Narrow down to loca/non-local coreference 
-
+Narrow down to loca/non-local coreference . 
 
 \subsection{Our Proposed Solution}
-Very broadly what we intended to to
-Broadly what we have found
+% Very broadly what we intended to to
 
-The code is available on GitHub \footnote{\url{https://github.com/alyonavyshnevska/bert_for_coreference_resolution}}.
+Since the introduction of pre-trained BERT model  \parencite{devlin2019bert} there has been a lot of research showing how the model outperforms previous state-of-the-art task-specific NLP models. % cite more papers here 
+\textcite{joshi2019coref} has introduced BERT models into coreference resolution tasks. However, the researchers have also encoded other information on top of BERT embeddings. 
+
+Our first research question is based on the recent research which shows that the BERT model itself encodes a significant amount of semantic and syntactic information. Therefore, we decided to test how well the span representations using BERT embeddings from the model by \textcite{joshi2019coref} finetuned on Ontonotes corpus can encode coreference resolution information without any layers of additional information about a given sequence. 
+
+As a baseline, we used pre-trained BERT embeddings not finetuned on Ontonotes. To encode a mention span,  we used a convolutional layer and a  self-attention layer.
+
+Our second research question, which naturally follows from the first one, whether the span representations encoded with a pre-trained BERT model simply modelling local coreference? Will it be able to encode non-local coreference dependencies? 
+
+We found that the span represenations from within the coreference model by \textcite{joshi2019coref} reach \textit{insert some numbers}. The baseline model is at \textit{insert numbers}. This findings suggests that the pre-trained BERT model is a powerful tool for encoding information relevant to coreference resolution. However, since the research is heavily based on the English language, it may be a phenomena particular to this language. The nominal declension in Ukrainian, for example, has seven cases; adjectives, pronouns have gender specific forms. Therefore, a similar analysis should be done for other languages before one can generalize the findings universally. 
+
+Our code is publicly available on GitHub.  \footnote{\url{https://github.com/alyonavyshnevska/bert_for_coreference_resolution}}.
 
 
 \section{Related Work} 
@@ -159,4 +168,12 @@ We evaluate the two models on the English OntoNotes 5.0 dataset \cite{conll}.
 \end{document}
 
 % https://www.overleaf.com/learn/latex/Articles/Getting_started_with_BibLaTeX
+
+%\textcite{joshi2019coref} bert for coref
+
+%\textcite{lee2018higher} Higher-Order
+
+%\textcite{lee2017end} End-to-End
+
+%\textcite{devlin2019bert} Bert
 

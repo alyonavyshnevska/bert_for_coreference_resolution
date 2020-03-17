@@ -43,14 +43,22 @@
 
 \section{Introduction}
 
-\subsection{Role of Coreference Resolution in NLP}
-Some nice long paragraphs about place of coreference in NLP  
+% Role of Coreference Resolution in NLP . 
+%Some nice long paragraphs about place of coreference in NLP  
+Coreference Resolution (CR) is a vital part of Natural Language Understanding and Natural Language Processing. It's applications include information extraction, question answering, summarization, machine translation, dialog systems etc. The task consists of mention detection and mention clustering. Some systems only focus on one part, while others propose end-to-end solutions.
 
-\subsection{Challenges in the Field}
-Paragraphs about problems with coref   
-Narrow down to loca/non-local coreference . 
+The notion of mention -- a span of text referring to some entity -- is central to the task of CR. Mentions can be one of the three kinds: pronouns, named entity, and noun phrases. When several mentions \textit{corefer} they refer to the same entity. 
 
-\subsection{Our Proposed Solution}
+Since the seventies automated solutions for coreference resolutions have been researched \textit{cite Hobbs}. Some of the challenges central to the field include semantic and syntactic agreement between mentions; encoding non-local dependencies; paraphrasing of repetitions.
+
+
+% While being a language short of elaborate agreements, English certainly enjoys the most scientific attention. It is a known challenge in NLP to do more research with agreement-rich languages \textit{citation needed}. 
+
+% Challenges in the Field . 
+% Paragraphs about problems with coref   
+% Narrow down to loca/non-local coreference . 
+
+% Our Proposed Solution
 % Very broadly what we intended to to
 
 Since the introduction of pre-trained BERT model  \parencite{devlin2019bert} there has been a lot of research showing how the model outperforms previous state-of-the-art task-specific NLP models. % cite more papers here 
@@ -62,7 +70,9 @@ As a baseline, we used pre-trained BERT embeddings not finetuned on Ontonotes. T
 
 Our second research question, which naturally follows from the first one, whether the span representations encoded with a pre-trained BERT model simply modelling local coreference? Will it be able to encode non-local coreference dependencies? 
 
-We found that the span represenations from within the coreference model by \textcite{joshi2019coref} reach \textit{insert some numbers}. The baseline model is at \textit{insert numbers}. This findings suggests that the pre-trained BERT model is a powerful tool for encoding information relevant to coreference resolution. However, since the research is heavily based on the English language, it may be a phenomena particular to this language. The nominal declension in Ukrainian, for example, has seven cases; adjectives, pronouns have gender specific forms. Therefore, a similar analysis should be done for other languages before one can generalize the findings universally. 
+We found that the span represenations from within the coreference model by \textcite{joshi2019coref} reach \textit{insert some numbers}. The baseline model is at \textit{insert numbers}. This findings suggests that the pre-trained BERT model is a powerful tool for encoding information relevant to coreference resolution. 
+
+For our second research question (non-local VS local dependencies) we found that ... 
 
 Our code is publicly available on GitHub.  \footnote{\url{https://github.com/alyonavyshnevska/bert_for_coreference_resolution}}.
 
@@ -70,7 +80,9 @@ Our code is publicly available on GitHub.  \footnote{\url{https://github.com/aly
 \section{Related Work} 
 
 \subsection{Approaches to Coreference Resolution}
-some paragraphs about mention mention-ranking, and others
+
+Older models work in a pipeline, however there are promising end-to-end solutions. 
+
 
 \subsection{State of the Art Coreference Models}
 %end-to-end and higher order
@@ -149,6 +161,9 @@ We evaluate the two models on the English OntoNotes 5.0 dataset \cite{conll}.
 \item what do this results tell us about coref and nlp in general
 \item discussion of why they are the way the are
 \end{itemize}
+
+We found that the model by \textcite{joshi2019coref} has performed very well. 
+However, since the research is heavily based on the English language, it may be a phenomena particular to this language. The nominal declension in Ukrainian, for example, has seven cases; adjectives, pronouns have gender specific forms. Therefore, a similar analysis should be done for other languages before one can generalize the findings universally. % maybe it's more relevant in the conclusion
 
 \subsection{Future Work}
 \begin{itemize}

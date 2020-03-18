@@ -48,8 +48,8 @@ if __name__ == "__main__":
                 candidate_span_emb, candidate_starts, candidate_ends = session.run(model.embeddings, feed_dict=feed_dict)
                 candidate_span_emb = candidate_span_emb[:, :2*embed_dim]  # exclude attention head and span features
                 pos_clusters, neg_clusters = example["distances_positive"], example["distances_negative"]
-                parent_child_emb_pos = span_util.get_parent_child_emb_baseline(pos_clusters, candidate_span_emb, candidate_starts, candidate_ends, "positive")
-                parent_child_emb_neg = span_util.get_parent_child_emb_baseline(neg_clusters, candidate_span_emb, candidate_starts, candidate_ends, "negative")
+                parent_child_emb_pos = span_util.get_parent_child_emb_baseline(pos_clusters, candidate_span_emb, candidate_starts, candidate_ends, "positive", embed_dim)
+                parent_child_emb_neg = span_util.get_parent_child_emb_baseline(neg_clusters, candidate_span_emb, candidate_starts, candidate_ends, "negative", embed_dim)
                 if parent_child_emb_pos is None and parent_child_emb_neg is not None:
                     parent_child_list.extend([parent_child_emb_neg])
                 elif parent_child_emb_neg is None and parent_child_emb_pos is not None:

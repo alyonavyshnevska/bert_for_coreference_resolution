@@ -13,11 +13,14 @@ import util
 import h5py
 from custom_coref import CustomCorefIndependent
 
-EMBED_DIM = 768
-
 if __name__ == "__main__":
     config = util.initialize_from_env()
     log_dir = config["log_dir"]
+
+    if sys.argv[1] == "train_bert_base":
+        embed_dim = 768
+    elif sys.argv[1] == "train_bert_large":
+        embed_dim = 1024
 
     # Input file in .jsonlines format.
     input_filename = sys.argv[2]
@@ -43,7 +46,7 @@ if __name__ == "__main__":
                 tensorized_example = model.tensorize_example(example, is_training=False)
                 feed_dict = {i:t for i,t in zip(model.input_tensors, tensorized_example)}
                 candidate_span_emb, candidate_starts, candidate_ends = session.run(model.embeddings, feed_dict=feed_dict)
-                candidate_span_emb = candidate_span_emb[:, :2*EMBED_DIM]  # exclude attention head and span features
+                candidate_span_emb = candidate_span_emb[:, :2*embed_dim]  # exclude attention head and span features
                 pos_clusters, neg_clusters = example["distances_positive"], example["distances_negative"]
                 parent_child_emb_pos = span_util.get_parent_child_emb_baseline(pos_clusters, candidate_span_emb, candidate_starts, candidate_ends, "positive")
                 parent_child_emb_neg = span_util.get_parent_child_emb_baseline(neg_clusters, candidate_span_emb, candidate_starts, candidate_ends, "negative")

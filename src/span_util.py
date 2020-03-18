@@ -95,14 +95,15 @@ def get_parent_child_emb_baseline(clusters, span_emb, span_starts, span_ends, la
             span_emb_list.append(parent_child_span)
             dist_list.append(dist)
 
-    parent_child_emb = tf.concat(span_emb_list, 0)
-    mention_dist = tf.dtypes.cast(tf.stack(dist_list, 0), tf.float32)
-    mention_dist = tf.reshape(mention_dist, [-1,1])
+    if span_emb_list:
+        parent_child_emb = tf.concat(span_emb_list, 0)
+        mention_dist = tf.dtypes.cast(tf.stack(dist_list, 0), tf.float32)
+        mention_dist = tf.reshape(mention_dist, [-1,1])
 
-    if label_type == "positive":
-        gold_label = tf.ones([parent_child_emb.shape[0],1], tf.float32)
-    elif label_type == "negative":
-        gold_label = tf.zeros([parent_child_emb.shape[0],1], tf.float32)
-    return tf.concat([parent_child_emb, mention_dist, gold_label], 1)
-
-
+        if label_type == "positive":
+            gold_label = tf.ones([parent_child_emb.shape[0],1], tf.float32)
+        elif label_type == "negative":
+            gold_label = tf.zeros([parent_child_emb.shape[0],1], tf.float32)
+        return tf.concat([parent_child_emb, mention_dist, gold_label], 1)
+    else:
+        return None

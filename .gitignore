@@ -1,5 +1,7 @@
 data/
 
+.vscode/
+
 ## Intermediate documents:
 *.dvi
 *.xdv

@@ -11,12 +11,10 @@
 \usepackage{enumitem}
 \usepackage[colorlinks,citecolor=blue]{hyperref}
 \usepackage[parfill]{parskip} % no indentation
-
-%\usepackage{helvet}
-\usepackage{color}
+\newcommand\todo[1]{\textcolor{red}{#1}}
 
 \usepackage[backend=biber,style=authoryear]{biblatex}
-%\usepackage{biblatex}
+\emergencystretch=1em
 \addbibresource{references.bib}
 
 
@@ -45,11 +43,11 @@
 
 % Role of Coreference Resolution in NLP . 
 %Some nice long paragraphs about place of coreference in NLP  
-Coreference Resolution (CR) is a vital part of Natural Language Understanding and Natural Language Processing. It's applications include information extraction, question answering, summarization, machine translation, dialog systems etc. The task consists of mention detection and mention clustering. Some systems only focus on one part, while others propose end-to-end solutions.
+Coreference Resolution (CR) is a vital part of Natural Language Understanding and Natural Language Processing (NLP). It's applications include information extraction, question answering, summarization, machine translation, dialog systems etc. The task consists of mention detection and mention clustering. Some systems only focus on one part, while others propose end-to-end solutions.
 
 The notion of mention -- a span of text referring to some entity -- is central to the task of CR. Mentions can be one of the three kinds: pronouns, named entity, and noun phrases. When several mentions \textit{corefer} they refer to the same entity. 
 
-Since the seventies automated solutions for coreference resolutions have been researched \textit{cite Hobbs}. Some of the challenges central to the field include semantic and syntactic agreement between mentions; encoding non-local dependencies; paraphrasing of repetitions.
+Since the seventies automated solutions for coreference resolutions have been researched \parencite{hobbs1978}. Some of the challenges central to the field include semantic and syntactic agreement between mentions; encoding non-local dependencies; paraphrasing of repetitions.
 
 
 % While being a language short of elaborate agreements, English certainly enjoys the most scientific attention. It is a known challenge in NLP to do more research with agreement-rich languages \textit{citation needed}. 
@@ -61,18 +59,18 @@ Since the seventies automated solutions for coreference resolutions have been re
 % Our Proposed Solution
 % Very broadly what we intended to to
 
-Since the introduction of pre-trained BERT model  \parencite{devlin2019bert} there has been a lot of research showing how the model outperforms previous state-of-the-art task-specific NLP models. % cite more papers here 
+Since the introduction of pre-trained BERT model  \parencite{devlin2019bert} there has been a lot of research showing how the model outperforms previous state-of-the-art task-specific NLP models. \todo{cite some papers here} % cite more papers here 
 \textcite{joshi2019coref} has introduced BERT models into coreference resolution tasks. However, the researchers have also encoded other information on top of BERT embeddings. 
 
-Our first research question is based on the recent research which shows that the BERT model itself encodes a significant amount of semantic and syntactic information. Therefore, we decided to test how well the span representations using BERT embeddings from the model by \textcite{joshi2019coref} finetuned on Ontonotes corpus can encode coreference resolution information without any layers of additional information about a given sequence. 
+Our first research question is based on the recent research which shows that the BERT model itself encodes a significant amount of semantic and syntactic information. Therefore, we decided to test how well the span representations using BERT embeddings from the model by \textcite{joshi2019coref} finetuned on Ontonotes dataset \parencite{conll}  can encode coreference resolution information without any layers of additional information about a given sequence. 
 
-As a baseline, we used pre-trained BERT embeddings not finetuned on Ontonotes. To encode a mention span,  we used a convolutional layer and a  self-attention layer.
+As a baseline, we used original pre-trained BERT embeddings. To encode a mention span,  we used a convolutional layer and a  self-attention layer.
 
 Our second research question, which naturally follows from the first one, whether the span representations encoded with a pre-trained BERT model simply modelling local coreference? Will it be able to encode non-local coreference dependencies? 
 
 We found that the span represenations from within the coreference model by \textcite{joshi2019coref} reach \textit{insert some numbers}. The baseline model is at \textit{insert numbers}. This findings suggests that the pre-trained BERT model is a powerful tool for encoding information relevant to coreference resolution. 
 
-For our second research question (non-local VS local dependencies) we found that ... 
+For our second research question (non-local VS local dependencies) we found that ... \todo{what we found for local non-locat}
 
 Our code is publicly available on GitHub.  \footnote{\url{https://github.com/alyonavyshnevska/bert_for_coreference_resolution}}.
 
@@ -90,7 +88,7 @@ Older models work in a pipeline, however there are promising end-to-end solution
 
 \textcite{devlin2019bert} made a significant break-through with their pre-trained BERT model. It can be finetuned with one additional output layer
 to create state-of-the-art models for a wide
-range of tasks, such as question answering and language inference, without substantial taskspecific architecture modifications. BERT's training examples consist of 128 and 512 word pieces. Such passage-level training has been an important improvement over the previous methods. It helps the model learn dependencies over text sequences longer than one sentence, such as the previous state of the art model ELMo \parencite{peters2018elmo}.
+range of NLP tasks, such as question answering and language inference, without substantial taskspecific architecture modifications. BERT's training examples consist of 128 and 512 word pieces. Such passage-level training has been an important improvement over the previous methods. It helps the model learn dependencies over text sequences longer than one sentence, such as the previous state of the art model ELMo \parencite{peters2018elmo}.
 
 \textcite{devlin2019bert} have extended the influential ELMo-based coreference model by \textcite{lee2018higher}. The authors have achieved a 3.9\% improvement on OntoNotes by replacing ELMo embeddings with BERT embeddings. 
 
@@ -106,13 +104,7 @@ range of tasks, such as question answering and language inference, without subst
 
 \textcite{tenney2019context} introduced edge probing task design investigated and found that existing models trained on language modeling and translation produce strong representations for syntactic phenomena, but only offer comparably small improvements on semantic tasks over a non-contextual baseline. For coreference resolution, the models had to determining whether two spans of tokens refer to the same entity. In order to investigate how good the contextual word representation models can model long-range dependencies, the authors used a fixed-width convolutional layer on top of the word representations to build spans of word pieces. The authors concluded that using the CNN layers on top of BERT-large pretarined model has performed particularly well on difficult semantic tasks, such as coreference resolution. Hence, in out work we will also follow the approach of the authors to construct our baseline. 
 
-%\textcite{joshi2019coref} bert for coref
 
-%\textcite{lee2018higher} Higher-Order
-
-%\textcite{lee2017end} End-to-End
-
-%\textcite{devlin2019bert} Bert
 
 \section{Approach}
 
@@ -130,12 +122,13 @@ In order to analyse this, we consider 2 kinds of span representations:
 Both span representations will be then used as inputs for coreference arc prediction task \cite{liu2019linguistic}, where a probing model (in this case a simple FFNN) is used to predict coreference relations. The probing model is designed with limited capacity to focus on what information that can be extracted from the span representations. The probing model itself has a sigmoid output layer, which is trained to minimize binary cross entropy. Each negative samples (\textit{w\_entity}, \textit{wb}) will be generated for every positive samples (\textit{wa}, \textit{wb}) where \textit{wb} occurs after \textit{wa} and \textit{w\_entity} is a token that occurs before \textit{wb} and belong to a difference coreference cluster, to ensure a balanced data. By comparing the performance of the probing model using these two span representations, we can hypothesize to what extent that the proposed span representation in \textcite{joshi2019coref}  can capture coreference information. We will also experiment with mention span separation distance to see how the probing model performs and whether if there is a degradation of accuracy and F1 score of the probing model with distant spans.
 
 \subsection{Data} 
-We use OntoNotes (English) generating the positive and negative examples for the probing model. OntoNotes (English) is a widely used dataset on coreference resolution from the CoNLL-2012 shared task. It consists of about one million words of newswire, magazine articles, broadcast news, broadcast conversations, web data and conversational speech data, and the New Testament. The main evaluation is the average F1 score of three metrics – \textit{MUC}, $B^3$ and $CEAF_ \phi4$ on the test set according to the official CoNLL-2012 evaluation scripts.
+For our experiments we use the English coreference resolution data
+from the CoNLL-2012 shared task based on the OntoNotes dataset \parencite{conll}. It consists of about one million words of newswire, magazine articles, broadcast news, broadcast conversations, web data and conversational speech data, and the New Testament. The dataset is split into 2802 training documents, 343 validation documents, and 348 test documents. On average, the training documents contain 454 words. The largest document contains a maximum of 4009 words. The main evaluation is the average F1 score of three metrics – \textit{MUC}, $B^3$ and $CEAF_ \phi4$ on the test set according to the official CoNLL-2012 evaluation scripts. For our experiments we generate the positive and negative examples of coreferent expressions as training data for the probing model. 
 
 
 \section{Experiments}
 
-We evaluate the two models on the English OntoNotes 5.0 dataset \cite{conll}. 
+
 
 
 \subsection{Implementation and Hyperparameters}. We extract the span representations from the coreference model by \textcite{joshi2019coref}. The model has been fine tuned on OntoNotes English data for 20 epochs using a dropout of 0.3, and learning rates of $1 * 10 ^{-5}$ and $2 * 10 ^{-4} $ with linear decay for the BERT parameters and the task parameters respectively. A batch size of 1 document has been used. 
@@ -191,4 +184,6 @@ However, since the research is heavily based on the English language, it may be 
 %\textcite{lee2017end} End-to-End
 
 %\textcite{devlin2019bert} Bert
+
+
 

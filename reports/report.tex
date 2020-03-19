@@ -1,20 +1,20 @@
 \documentclass[11pt]{article}
-
 \usepackage[scaled]{helvet}
 \renewcommand\familydefault{\sfdefault} 
 \usepackage[T1]{fontenc}%%% use with PDFLaTeX
 \usepackage[utf8]{inputenc}
 \usepackage[top=25mm,left=25mm,right=25mm,bottom=20mm,headsep=15pt,footskip=15pt,a4paper]{geometry} % see geometry.pdf on how to lay out the page. There's lots.
 \usepackage[english]{babel}
-
 \usepackage{color}
 \usepackage{enumitem}
 \usepackage[colorlinks,citecolor=blue]{hyperref}
 \usepackage[parfill]{parskip} % no indentation
 \newcommand\todo[1]{\textcolor{red}{#1}}
-
 \usepackage[backend=biber,style=authoryear]{biblatex}
 \emergencystretch=1em
+\usepackage{graphicx}
+\graphicspath{ {./figures/} }
+\usepackage{wrapfig}
 \addbibresource{references.bib}
 
 
@@ -90,7 +90,23 @@ Nowadays a widely-adopted approach to coreference resolution are end-to-end mode
 %end-to-end and higher order
 %bert, bert for coref
 
-\textcite{lee2017end} have proposed an span-ranking approach, which the authors describe as most similar to mention ranking, with reasoning over a larger space by detecting mentions and predicting coreference jointly in one end-to-end model. The authors showed that from the space of all possible spans their model implicitly  learns to produce meaningful mention candidates. A head-finding attention mechanism also learns a task-specific preference for head words, which has a strong correlation with head-word definitions in rule-based systems.
+\begin{figure}[h]
+  \includegraphics[width=\textwidth]{e2emodel.eps}
+  \caption{Figure 1: First step of the end-to-end coreference resolution model, which computes embedding representations of spans for scoring potential entity mentions. Low-scoring spans are pruned, so that only a manageable number of spans is considered for coreference decisions. In general, the model considers all possible spans up to a maximum width, but we depict here only a small subset. \parencite{lee2017end}}
+  \label{fig:e2emodel}
+\end{figure}
+
+\textcite{lee2017end} have proposed an span-ranking approach, which the authors describe as most similar to mention ranking, with reasoning over a larger space by detecting mentions and predicting coreference jointly in one end-to-end model. 
+
+
+The authors showed that from the space of all possible spans their model implicitly  learns to produce meaningful mention candidates. A head-finding attention mechanism also learns a task-specific preference for head words, which has a strong correlation with head-word definitions in rule-based systems.
+
+\begin{wrapfigure}{r}{0.5\textwidth} %this figure will be at the right
+    \centering
+      \includegraphics[width=0.5\textwidth]{e2e_extra_info.eps}
+  \caption{Second step of end-to-end model by \textcite{lee2017end}. Antecedent scores are computed from pairs of span representations. The final coreference score of a pair of spans is computed by summing the mention scores of both spans and their pairwise antecedent score.  }
+  \label{fig:e2e_extra_infol}
+\end{wrapfigure}
 
 Building on to of the span-ranking neural architechture in \textcite{lee2017end}, \textcite{lee2018higher} proposed a model that captures higher order interactions
 between spans in predicted clusters. It also alleviates the additional computational cost of higher-order inference due to a coarse-to-fine approach, which allows the model to at first compute a rough sketch of likely antecedents, and only at a later stage apply a more exhaustive inference. Hence, the coarse-to-fine approach expands the set of coreference links that the model is capable of learning. 
@@ -99,6 +115,11 @@ To encode the span representations \textcite{lee2017end} use bidirectional LSTM 
 outside of each span. \textcite{lee2018higher} additionaly use the newly published ELMo embedding representations by \textcite{peters2018elmo} at the input to the LSTMs.
 
 \textcite{joshi2019coref} took the architechture of \textcite{lee2018higher} and improved the performence of the model further by replacing the ELMo embeddings by the at the time newly available transformer-based BERT embeddings \textcite{devlin2019bert}. With this change the  authors has gained an additional 3.9\% improvement on the OntoNotes compared to the already high results of \textcite{lee2018higher} . 
+
+
+
+
+%Figure \ref{fig:boat1} shows a boat.
 
 % add results table from joshi
 % add lee2017 2 graphics

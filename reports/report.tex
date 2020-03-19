@@ -79,7 +79,8 @@ Our code is publicly available on GitHub.  \footnote{\url{https://github.com/aly
 
 \subsection{Approaches to Coreference Resolution}
 
-Mention-pair, mention-rank, and entity-based are three most common architectures for coreference resolution models. Earlier solutions have been feature-based, while in the recent years neural classifiers has been particularly successful.
+Architectures for coreference resolution models are typically categorized as 1) mention-pair classifiers \parencite{ng2002identifying, bengtson2008understanding}, 2) mention-ranking classifiers \parencite{durrett2013easy, wiseman2015learning, clark2016deep}, 3) entity-level models \parencite{haghighi-klein-2010-coreference, wiseman-etal-2016-learning}, or 4) latent-tree models \parencite{fernandes-etal-2012-latent, martschat-strube-2015-latent}.
+Earlier solutions have been feature-based, while in the recent years neural classifiers have been particularly successful.
 
 Nowadays a widely-adopted approach to coreference resolution are end-to-end models that perform mention detection, anaphoricity, and coreference jointly \parencite{jurafsky2019}. Beforehand, the rule-based systems were in use. Notable mentions are work by \textcite{hobbs1978}, \textcite{lappin1994}. \textcite{hobbs1978} invented a tree-search algorithm for identifying reference with robust results, which started a long series of syntax-based methods.  \textcite{lappin1994} combined syntactic and other features by assigning weights to those features and summing these up to score candidate mentions. \textcite{kennedy1996} optimised the approach to avoid full syntactic parsing. 
 
@@ -88,6 +89,8 @@ Nowadays a widely-adopted approach to coreference resolution are end-to-end mode
 \subsection{State of the Art Coreference Models}
 %end-to-end and higher order
 %bert, bert for coref
+
+\textcite{lee2017end} have proposed an span-ranking approach, which the authors describe as most similar to mention ranking, with reasoning over a larger space by detecting mentions and predicting coreference jointly in one end-to-end model.
 
 
 \textcite{devlin2019bert} made a significant break-through with their pre-trained BERT model. It can be finetuned with one additional output layer

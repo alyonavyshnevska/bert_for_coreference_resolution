@@ -90,14 +90,24 @@ Nowadays a widely-adopted approach to coreference resolution are end-to-end mode
 %end-to-end and higher order
 %bert, bert for coref
 
-\textcite{lee2017end} have proposed an span-ranking approach, which the authors describe as most similar to mention ranking, with reasoning over a larger space by detecting mentions and predicting coreference jointly in one end-to-end model.
+\textcite{lee2017end} have proposed an span-ranking approach, which the authors describe as most similar to mention ranking, with reasoning over a larger space by detecting mentions and predicting coreference jointly in one end-to-end model. The authors showed that from the space of all possible spans their model implicitly  learns to produce meaningful mention candidates. A head-finding attention mechanism also learns a task-specific preference for head words, which has a strong correlation with head-word definitions in rule-based systems.
 
+Building on to of the span-ranking neural architechture in \textcite{lee2017end}, \textcite{lee2018higher} proposed a model that captures higher order interactions
+between spans in predicted clusters. It also alleviates the additional computational cost of higher-order inference due to a coarse-to-fine approach, which allows the model to at first compute a rough sketch of likely antecedents, and only at a later stage apply a more exhaustive inference. Hence, the coarse-to-fine approach expands the set of coreference links that the model is capable of learning. 
+
+To encode the span representations \textcite{lee2017end} use bidirectional LSTM \parencite{lstm} to encode the lexical information of the inside and
+outside of each span. \textcite{lee2018higher} additionaly use the newly published ELMo embedding representations by \textcite{peters2018elmo} at the input to the LSTMs.
+
+\textcite{joshi2019coref} took the architechture of \textcite{lee2018higher} and improved the performence of the model further by replacing the ELMo embeddings by the at the time newly available transformer-based BERT embeddings \textcite{devlin2019bert}. With this change the  authors has gained an additional 3.9\% improvement on the OntoNotes compared to the already high results of \textcite{lee2018higher} . 
+
+% add results table from joshi
+% add lee2017 2 graphics
 
 \textcite{devlin2019bert} made a significant break-through with their pre-trained BERT model. It can be finetuned with one additional output layer
 to create state-of-the-art models for a wide
 range of NLP tasks, such as question answering and language inference, without substantial taskspecific architecture modifications. BERT's training examples consist of 128 and 512 word pieces. Such passage-level training has been an important improvement over the previous methods. It helps the model learn dependencies over text sequences longer than one sentence, such as the previous state of the art model ELMo \parencite{peters2018elmo}.
 
-\textcite{devlin2019bert} have extended the influential ELMo-based coreference model by \textcite{lee2018higher}. The authors have achieved a 3.9\% improvement on OntoNotes by replacing ELMo embeddings with BERT embeddings. 
+
 
 \subsection{Coreference Arc Prediction Task}
 % \textcite{liu2019linguistic}  Ling Knowledge and Transfer, Negative Samples, arc prediction task
@@ -114,6 +124,11 @@ range of NLP tasks, such as question answering and language inference, without s
 
 
 \section{Approach}
+
+A benefit of using neural models
+for coreference resolution is their ability to use
+word embeddings to capture similarity between
+words, a property that many traditional feature-based models lack.
 
 
 \subsection{Span Representation and Long-Range Coreference}

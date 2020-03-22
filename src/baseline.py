@@ -10,7 +10,7 @@ import csv
 from keras.models import Model
 from keras.layers import Dense, Conv1D, Input
 from keras import optimizers
-from keras.callbacks import EarlyStopping, CSVLogger, Callback
+from keras.callbacks import EarlyStopping, CSVLogger, Callback, ModelCheckpoint
 from sklearn.metrics import f1_score
 from keras_self_attention import SeqWeightedAttention
 
@@ -145,11 +145,13 @@ if __name__ == "__main__":
     predictions = Dense(units=1, activation='sigmoid')(hidden_layer)
 
     opt = optimizers.Adam(lr=0.001)
-    callbacks = [EarlyStopping(monitor='val_loss', min_delta=0, patience=3, verbose=0, mode='auto', restore_best_weights=True), ComputeTestF1(), CSVLogger(log_name, separator='\t')]
+    early_stop = EarlyStopping(monitor='val_loss', min_delta=0, patience=3, verbose=0, mode='auto', restore_best_weights=True)
+    checkpoint_save = ModelCheckpoint(args.exp_name + '.h5', save_best_only=True, monitor='val_loss', mode='min')
+    callbacks = [early_stop, checkpoint_save, ComputeTestF1(), CSVLogger(log_name, separator='\t')]
 
     model = Model(inputs=[parent_span, child_span], output=predictions)
     model.compile(loss='binary_crossentropy', optimizer=opt, metrics=['accuracy'])
-    model.fit([train_parent_emb, train_child_emb], y_train, epochs=50, batch_size=128, validation_data=([val_parent_emb, val_child_emb], y_val), callbacks=callbacks)
+    model.fit([train_parent_emb, train_child_emb], y_train, epochs=50, batch_size=512, validation_data=([val_parent_emb, val_child_emb], y_val), callbacks=callbacks)
 
     with open(log_name, 'a') as out_file:
         tsv_writer = csv.writer(out_file, delimiter='\t')

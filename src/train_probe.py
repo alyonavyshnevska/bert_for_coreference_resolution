@@ -69,7 +69,7 @@ if __name__ == "__main__":
 
     # Compile model
     model.compile(loss='binary_crossentropy', optimizer=opt, metrics=['accuracy'])
-    model.fit(x_train, y_train, epochs=50, batch_size=128, validation_data=(x_val, y_val), callbacks=callbacks)
+    model.fit(x_train, y_train, epochs=50, batch_size=512, validation_data=(x_val, y_val), callbacks=callbacks)
 
     with open(log_name, 'a') as out_file:
         tsv_writer = csv.writer(out_file, delimiter='\t')

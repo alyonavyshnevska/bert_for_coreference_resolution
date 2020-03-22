@@ -151,7 +151,7 @@ if __name__ == "__main__":
 
     model = Model(inputs=[parent_span, child_span], output=predictions)
     model.compile(loss='binary_crossentropy', optimizer=opt, metrics=['accuracy'])
-    model.fit([train_parent_emb, train_child_emb], y_train, epochs=50, batch_size=128, validation_data=([val_parent_emb, val_child_emb], y_val), callbacks=callbacks)
+    model.fit([train_parent_emb, train_child_emb], y_train, epochs=50, batch_size=512, validation_data=([val_parent_emb, val_child_emb], y_val), callbacks=callbacks)
 
     with open(log_name, 'a') as out_file:
         tsv_writer = csv.writer(out_file, delimiter='\t')

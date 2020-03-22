@@ -10,7 +10,7 @@ from keras.models import Sequential
 from keras.layers.core import Dense, Activation
 from keras import optimizers
 from keras import backend as K
-from keras.callbacks import EarlyStopping, CSVLogger, Callback
+from keras.callbacks import EarlyStopping, CSVLogger, Callback, ModelCheckpoint
 from sklearn.metrics import f1_score
 
 
@@ -63,11 +63,13 @@ if __name__ == "__main__":
     model.add(Dense(units=1, activation='sigmoid'))
     opt = optimizers.Adam(lr=0.001)
 
-    callbacks = [EarlyStopping(monitor='val_loss', min_delta=0, patience=3, verbose=0, mode='auto', restore_best_weights=True), ComputeTestF1(), CSVLogger(log_name, separator='\t')]
+    early_stop = EarlyStopping(monitor='val_loss', min_delta=0, patience=3, verbose=0, mode='auto', restore_best_weights=True)
+    checkpoint_save = ModelCheckpoint(args.exp_name + '.h5', save_best_only=True, monitor='val_loss', mode='min')
+    callbacks = [early_stop, checkpoint_save, ComputeTestF1(), CSVLogger(log_name, separator='\t')]
 
     # Compile model
     model.compile(loss='binary_crossentropy', optimizer=opt, metrics=['accuracy'])
-    model.fit(x_train, y_train, epochs=50, batch_size=128, validation_data=(x_val, y_val), callbacks=callbacks)
+    model.fit(x_train, y_train, epochs=50, batch_size=512, validation_data=(x_val, y_val), callbacks=callbacks)
 
     with open(log_name, 'a') as out_file:
         tsv_writer = csv.writer(out_file, delimiter='\t')

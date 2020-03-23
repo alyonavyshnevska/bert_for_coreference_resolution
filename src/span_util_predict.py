@@ -48,7 +48,7 @@ def get_parent_child_emb(clusters, span_emb, span_starts, span_ends, label_type,
             gold_label = tf.ones([parent_child_emb.shape[0],1], tf.float32)
         elif label_type == "negative":
             gold_label = tf.zeros([parent_child_emb.shape[0],1], tf.float32)
-        return tf.concat([parent_child_emb, mention_dist, gold_label, men1_start, men1_end, men2_start, men2_end, doc_key], 1)
+        return tf.concat([parent_child_emb, mention_dist, men1_start, men1_end, men2_start, men2_end, doc_key, gold_label], 1)
     else:
         return None
 
@@ -125,6 +125,6 @@ def get_parent_child_emb_baseline(clusters, span_emb, span_starts, span_ends, la
         gold_label = tf.ones([parent_child_emb.shape[0],1], tf.float32)
     elif label_type == "negative":
         gold_label = tf.zeros([parent_child_emb.shape[0],1], tf.float32)
-    return tf.concat([parent_child_emb, mention_dist, gold_label, men1_start, men1_end, men2_start, men2_end, doc_keys], 1)
+    return tf.concat([parent_child_emb, mention_dist, men1_start, men1_end, men2_start, men2_end, doc_keys, gold_label], 1)
 
 

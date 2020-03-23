@@ -8,7 +8,7 @@ import os
 
 import tensorflow as tf
 import numpy as np
-import span_util
+import span_util_predict
 import util
 import h5py
 from custom_coref import CustomCorefIndependent

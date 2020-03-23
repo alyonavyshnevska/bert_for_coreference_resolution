@@ -8,7 +8,7 @@ import os
 
 import tensorflow as tf
 import numpy as np
-import span_util
+import span_util_predict
 import util
 import h5py
 from custom_coref import CustomCorefIndependent
@@ -41,6 +41,7 @@ if __name__ == "__main__":
                 feed_dict = {i:t for i,t in zip(model.input_tensors, tensorized_example)}
                 candidate_span_emb, candidate_starts, candidate_ends = session.run(model.embeddings, feed_dict=feed_dict)
                 pos_clusters, neg_clusters = example["distances_positive"], example["distances_negative"]
+                sentence = example["sentences"]
                 doc_key = example["doc_key"]
                 parent_child_emb_pos = span_util.get_parent_child_emb(pos_clusters, candidate_span_emb, candidate_starts, candidate_ends, "positive", doc_key)
                 parent_child_emb_neg = span_util.get_parent_child_emb(neg_clusters, candidate_span_emb, candidate_starts, candidate_ends, "negative", doc_key)

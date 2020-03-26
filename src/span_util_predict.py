@@ -9,7 +9,7 @@ import tensorflow as tf
 import numpy as np
 
 
-def get_parent_child_emb(clusters, span_emb, span_starts, span_ends, label_type, doc_key):
+def get_parent_child_emb(clusters, span_emb, span_starts, span_ends, label_type):
     """
     Make [n, 2*emb + 2] tensor where n is number of samples and emb is dimension of embeddings
     and last 2 values are distance between mentions and gold label, respectively.
@@ -20,7 +20,6 @@ def get_parent_child_emb(clusters, span_emb, span_starts, span_ends, label_type,
     men1_end = []
     men2_start = []
     men2_end = []
-    doc_keys = []
 
     for coref_relation, dist in clusters:
         assert len(coref_relation) == 2, 'Member of mentions are not equal to 2'
@@ -31,12 +30,11 @@ def get_parent_child_emb(clusters, span_emb, span_starts, span_ends, label_type,
         if len(parent_idx) == 1 and len(child_idx) == 1:  # There are some mentions that exceeded max_span_width, this check skips such mentions.
             parent_child_span = tf.concat([span_emb[parent_idx], span_emb[child_idx]], 1)
             span_emb_list.append(parent_child_span)
-            dist_list.append(dist)
             men1_start.append(coref_relation[0][0])
             men1_end.append(coref_relation[0][1])
             men2_start.append(coref_relation[1][0])
             men2_end.append(coref_relation[1][1])
-            doc_keys.append(doc_key)
+            dist_list.append(dist)
 
 
     if span_emb_list:
@@ -48,12 +46,19 @@ def get_parent_child_emb(clusters, span_emb, span_starts, span_ends, label_type,
             gold_label = tf.ones([parent_child_emb.shape[0],1], tf.float32)
         elif label_type == "negative":
             gold_label = tf.zeros([parent_child_emb.shape[0],1], tf.float32)
-        return tf.concat([parent_child_emb, mention_dist, men1_start, men1_end, men2_start, men2_end, doc_key, gold_label], 1)
+
+        return {'parent_child_emb': parent_child_emb,
+                'mention_dist': mention_dist,
+                'men1_start': men1_start,
+                'men1_end': men1_end,
+                'men2_start': men2_start,
+                'men2_end': men2_end,
+                'gold_label': gold_label }
     else:
         return None
 
 
-def get_parent_child_emb_baseline(clusters, span_emb, span_starts, span_ends, label_type, doc_key):
+def get_parent_child_emb_baseline(clusters, span_emb, span_starts, span_ends, label_type):
     """
     Make [n, 2*max_span_width*embed_dim + 2] tensor where n is number of samples
     max_span_width is maximum width of span allowed from configuration files,
@@ -68,7 +73,7 @@ def get_parent_child_emb_baseline(clusters, span_emb, span_starts, span_ends, la
     men2_end = []
     embed_dim = 768
     max_span_width = 30
-    doc_keys = []
+
 
     for coref_relation, dist in clusters:
         assert len(coref_relation) == 2, 'Member of mentions are not equal to 2'
@@ -110,21 +115,34 @@ def get_parent_child_emb_baseline(clusters, span_emb, span_starts, span_ends, la
             child_emb = tf.pad(child_emb, child_paddings, "CONSTANT")
             parent_child_span = tf.concat([parent_emb, child_emb], 1)
             span_emb_list.append(parent_child_span)
-            dist_list.append(dist)
             men1_start.append(coref_relation[0][0])
             men1_end.append(coref_relation[0][1])
             men2_start.append(coref_relation[1][0])
             men2_end.append(coref_relation[1][1])
-            doc_keys.append(doc_key)
+            dist_list.append(dist)
 
-    parent_child_emb = tf.concat(span_emb_list, 0)
-    mention_dist = tf.dtypes.cast(tf.stack(dist_list, 0), tf.float32)
-    mention_dist = tf.reshape(mention_dist, [-1,1])
+    if span_emb_list:
+        parent_child_emb = tf.concat(span_emb_list, 0)
+        mention_dist = tf.dtypes.cast(tf.stack(dist_list, 0), tf.float32)
+        mention_dist = tf.reshape(mention_dist, [-1,1])
 
-    if label_type == "positive":
-        gold_label = tf.ones([parent_child_emb.shape[0],1], tf.float32)
-    elif label_type == "negative":
-        gold_label = tf.zeros([parent_child_emb.shape[0],1], tf.float32)
-    return tf.concat([parent_child_emb, mention_dist, men1_start, men1_end, men2_start, men2_end, doc_keys, gold_label], 1)
+        if label_type == "positive":
+            gold_label = tf.ones([parent_child_emb.shape[0],1], tf.float32)
+        elif label_type == "negative":
+            gold_label = tf.zeros([parent_child_emb.shape[0],1], tf.float32)
+
+        print('Embeddings created.')
+
+        return {'parent_child_emb': parent_child_emb,
+                'mention_dist': mention_dist,
+                'men1_start': men1_start,
+                'men1_end': men1_end,
+                'men2_start': men2_start,
+                'men2_end': men2_end,
+                'gold_label': gold_label }
+    else:
+        return None
+    # [parent_child_emb, mention_dist, men1_start, men1_end, men2_start, men2_end, doc_keys, gold_label]
+    # return tf.concat([parent_child_emb, mention_dist, men1_start, men1_end, men2_start, men2_end, doc_keys, gold_label], 1)
 
 

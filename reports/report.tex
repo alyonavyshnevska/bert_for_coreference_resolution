@@ -13,6 +13,8 @@
 \usepackage[backend=biber,style=authoryear]{biblatex}
 \emergencystretch=1em
 \usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{amssymb}
 \graphicspath{ {./figures/} }
 \usepackage{wrapfig}
 \addbibresource{references.bib}
@@ -136,6 +138,8 @@ A qualitative analysis done by the authors suggests that BERT-large (unlike BERT
 \subsection{Coreference Arc Prediction Task}
 % \textcite{liu2019linguistic}  Ling Knowledge and Transfer, Negative Samples, arc prediction task
 
+
+
 Recently, there has been interesting work done to simplify state-of-the-art task-specific NLP models. 
  \textcite{liu2019linguistic} show evidence that frozen contextual represenations of word sequences fed into linear models can show similar levels of performance as state-of-the-art task-specific models on many NLP tasks.
 The authors use probing models, also known as auxiliary or diagnostic classifiers \parencite{shi2016string, kadar2017representation} to analyse the linguistic information within contextual word representations. To test how the probing model performs in comparison to ELMo, the authors tested the models on a coreference arc prediction task, where the model predicts whether two mentions corefer. The Ontonotes dataset was used. To train the probing model the authors generate negative examples, where mentions that do not corefer are fed into the probing model alongside the mentions that do corefer. In our work we will also build our experiments similar to coreference arc prediction tasks suggested by the authors.
@@ -144,21 +148,46 @@ The authors use probing models, also known as auxiliary or diagnostic classifier
 \textcite{tenney2019context} introduced edge probing task design. For coreference resolution, the models had to determining whether two spans of tokens refer to the same entity. In order to investigate how good the contextual word representation models can model long-range dependencies, the authors used a fixed-width convolutional layer on top of the word representations to build spans of word pieces. The authors concluded that using the CNN layers on top of BERT-large pretarined model has performed particularly well on difficult semantic tasks, such as coreference resolution. Hence, in out work we will also follow the approach of the authors to construct our baseline. 
 % and found that existing models trained on language modeling and translation produce strong representations for syntactic phenomena, but only offer comparably small improvements on semantic tasks over a non-contextual baseline. 
 
+\section{Overview of BERT-coref}
 
-\section{Approach}
+\section{Probing Mention-span Representations}
+% change section name to Probing Span Representations
+% include overview of SOTA-architecture with BERT, preferably before the Probing Span Representations section
+% Explain about Span Representations/Embeddings, especially regarding the features, define the span representations in SOTA
+
+% Explain about the probing task, in this case Arc Prediction
+% Explain about OntoNotes datasets, possibly can be moved to Experiments.
+% Explain about probing model, possibly can be moved to Experiments. Explain also what is the input
 
 \subsection{Span Representation}
 
-We attempt to investigate 1) to what extent the span representations proposed using span embeddings with BERT \parencite{devlin2019bert} in \textcite{joshi2019coref} can encode coreference information, 2) and whether it is able to encode non-local coreference phenomena or is it just simply modeling local coreference.
+Span representation plays an important role in span-ranking model [Lee 2017], since it is used to compute distribution over candidate antecedent spans. In order to be able to predict coreference relations accurately, span representation should also capture the information of the span's internal structure and its surrounding context. In our experiments, we use the span representation which is first proposed in [Lee 2017], but with BERT [Devlin] instead of a LSTM-based encoder to encode lexical information of the span and its surrounding, following [Joshi 2019]. The span representation is a vector embeddings which consists of context-dependent boundary representations with attentional representation of the head words over the span. The boundary representations are composed of first and last word-pieces of the span itself. The head words are automatically learned using additive attention [Bahdanau 2015] over each word-pieces in the span:
 
-In order to analyse the first research question, we experiment with BERT-based span representations in \textit{bert-coref} model. The model is finetuned on OntoNotes. A single span represenattion for a mention consists of BERT embeddings for its first and last word-pieces concatenated with the attention version of all word pieces in the span. These span embeddings are a part of a larger \textit{bert-coref} model. \textcite{joshi2019coref} calculate several scores on top of span representations: mention score, antecedent score, and coreference score, which is then passed through a softmax layer. \ref{fig:e2e_extra_info} illustrates these additional layers. 
+\begin{align*}
+\alpha_{t} &= \pmb{w}_{\alpha} \cdot \text{FFNN}_{\alpha}(\pmb{x}_{t}^{*}) \\ 
+a_{i,t} &=  \frac{exp(\alpha_{t})}{\sum\limits_{k=start(i)}^{end(i)} exp(\alpha_{k})} \\ 
+\hat{\pmb{x}}_{i} &= \sum\limits_{t=start(i)}^{end(i)} a_{i,t} \cdot \pmb{x}_{t}
+\end{align*}
 
-For our research we refer to the work of \textcite{liu2019linguistic}. The research argue that frozen contextual represenations of word sequences fed into linear models can show similar levels of performance as state of the art task-specific models on many NLP tasks. We are interested in analysing how BERT span representations fed into a linear model will perform on a coreference task. For our experiments we will use a similar strategy as the coreference arc prediction task proposed by t\textcite{liu2019linguistic}.
+where $\hat{\pmb{x}}_{i}$ is a weighted vector representation of word-pieces for span $i$. This representation is augmented by a $\mathbb{R}^{d}$ feature vector which encodes the size of span $i$ with $d = 20$. The final representation $\pmb{g}_{i}$ for span $i$ is formulated as the following:
 
-\subsection{Arc Prediction Task}
+\begin{align*}
+\pmb{g}_{i} = [\pmb{x}_{start(i)}^{*}, \pmb{x}_{end(i)}^{*}, \hat{\pmb{x}}_{i}, \phi_{i}]
+\end{align*}  
 
-Span representations will be then used as inputs for coreference arc prediction task \cite{liu2019linguistic}, where a probing model (in this case a simple FFNN) is used to predict coreference relations. The probing model is designed with limited capacity to focus on what information that can be extracted from the span representations. The probing model itself has a sigmoid output layer, which is trained to minimize binary cross entropy. Each negative samples (\textit{w\_entity}, \textit{wb}) will be generated for every positive samples (\textit{wa}, \textit{wb}) where \textit{wb} occurs after \textit{wa} and \textit{w\_entity} is a token that occurs before \textit{wb} and belong to a difference coreference cluster, to ensure a balanced data. By comparing the performance of the probing model using span representations, we can hypothesize to what extent that the proposed span representation in \textcite{joshi2019coref}  can capture coreference information. We will also experiment with mention span separation distance to see how the probing model performs and whether if there is a degradation of accuracy and F1 score of the probing model with distant spans.
+where $\pmb{x}_{start(i)}^{*}$ and $\pmb{x}_{end(i)}^{*}$ are first and last word-pieces of the span, and $\phi_{i}$ is the span width embeddings.
 
+%To perform coreference resolution, it is important to choose a span representation so that the information of the internal structure of the mention span and its surrounding context can be accurately captured. We use the span representation which is first proposed in (End-to-End), but with BERT as encoder (Joshi) instead of a LSTM-based encoder. For span $i$, the span representation $g_{i}$ is formulated as the following:
+
+\subsection{Coreference Arc Prediction}
+
+%Span representations will be then used as inputs for coreference arc prediction task \cite{liu2019linguistic}, where a probing model (in this case a simple FFNN) is used to predict coreference relations. The probing model is designed with limited capacity to focus on what information that can be extracted from the span representations. The probing model itself has a sigmoid output layer, which is trained to minimize binary cross entropy. Each negative samples (\textit{w\_entity}, \textit{wb}) will be generated for every positive samples (\textit{wa}, \textit{wb}) where \textit{wb} occurs after \textit{wa} and \textit{w\_entity} is a token that occurs before \textit{wb} and belong to a difference coreference cluster, to ensure a balanced data. By comparing the performance of the probing model using span representations, we can hypothesize to what extent that the proposed span representation in \textcite{joshi2019coref}  can capture coreference information. We will also experiment with mention span separation distance to see how the probing model performs and whether if there is a degradation of accuracy and F1 score of the probing model with distant spans.
+
+
+% Tenney focus on span, Liu focus on CWR
+We focus on coreference arc prediction task, which is a part of probing tasks suite for contextual word embeddings [Liu 2019, Tenney 2019]. In this task, a probing model is trained to determine whether if two mentions refer to the same entity. We use the OntoNotes dataset [Pradhan et al 2012] from the CoNLL-2012 shared task. As OntoNotes only contains annotations for corefering mentions, we produce negative samples following the approach by [Liu 2019]......
+
+We also follow the approach of [Tenney 2019] by using spans of word-pieces, as [Liu 2019]'s approach is limited on single-token entities and therefore unable to fully exploit the whole mention-span.
 
 \subsection{Baseline}
 As our baseline, w euse pre-trained BERT embeddings (not finetuned on OntoNotes) for all tokens within the mention span, which is then passed through a convolutional layer (with kernel width of 3 and 5) to incorporate the local context and followed by self-attention pooling operator to produce a fixed-length span representations. This is to model head words, inspired by approach from \textcite{tenney2019context}.
@@ -173,6 +202,18 @@ from the CoNLL-2012 shared task based on the OntoNotes dataset \parencite{conll}
 
 
 \section{Experiments}
+% Explain that we do 2 experiments, first to see how the architectures improves span representation compared to non-finetuned BERT embeddings. Second one is to see long-range coreference phenomena.
+% Explain pre-trained contextualized word embeddings that we used in the project, in this case BERT fine-tuned on OntoNotes and BERT which is not-fine tuned, use BERT-base and BERT-large cased, with 128 and 384 max segment length, because it is the best results. Independent variant
+% Implementation and hyperparams
+% Introduce baseline models here, also explain a bit regarding the attention..
+% Explain how we see the long-range coference phenomena, with span separation distance.
+
+% Move this to experiment
+%We attempt to investigate 1) to what extent the span representations proposed using span embeddings with BERT \parencite{devlin2019bert} in \textcite{joshi2019coref} can encode coreference information, 2) and whether it is able to encode non-local coreference phenomena or is it just simply modeling local coreference.
+
+%In order to analyse the first research question, we experiment with BERT-based span representations in \textit{bert-coref} model. The model is finetuned on OntoNotes. A single span represenattion for a mention consists of BERT embeddings for its first and last word-pieces concatenated with the attention version of all word pieces in the span. These span embeddings are a part of a larger \textit{bert-coref} model. \textcite{joshi2019coref} calculate several scores on top of span representations: mention score, antecedent score, and coreference score, which is then passed through a softmax layer. \ref{fig:e2e_extra_info} illustrates these additional layers. 
+
+%For our research we refer to the work of \textcite{liu2019linguistic}. The research argue that frozen contextual represenations of word sequences fed into linear models can show similar levels of performance as state of the art task-specific models on many NLP tasks. We are interested in analysing how BERT span representations fed into a linear model will perform on a coreference task. For our experiments we will use a similar strategy as the coreference arc prediction task proposed by t\textcite{liu2019linguistic}.
 
 
 We extract the BERT span representations from a pipeline provided in a GitHub repository by \textcite{joshi2019coref} \footnote{\url{https://github.com/mandarjoshi90/coref}}. 
@@ -184,7 +225,7 @@ We extract the BERT span representations from a pipeline provided in a GitHub re
 
 
 \section{Results}
-
+% Relate that it is possible to eliminate second step of the model? Seeing that probing model can be enough to predict coreference links?
 \begin{itemize}
 \item some nice plots here
 \item some tables here

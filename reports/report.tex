@@ -161,8 +161,7 @@ The authors use probing models, also known as auxiliary or diagnostic classifier
 
 \subsection{Span Representation}
 
-Span representation plays an important role in span-ranking model [Lee 2017], since it is used to compute distribution over candidate antecedent spans. In order to be able to predict coreference relations accurately, span representation should also capture the information of the span's internal structure and its surrounding context. In our experiments, we use the span representation which is first proposed in [Lee 2017], but with BERT [Devlin] instead of a LSTM-based encoder to encode lexical information of the span and its surrounding, following [Joshi 2019]. The span representation is a vector embeddings which consists of context-dependent boundary representations with attentional representation of the head words over the span. The boundary representations are composed of first and last word-pieces of the span itself. The head words are automatically learned using additive attention [Bahdanau 2015] over each word-pieces in the span:
-
+Span representation plays an important role in span-ranking model \parencite{lee2017end}, since it is used to compute distribution over candidate antecedent spans. In order to be able to predict coreference relations accurately, span representation should also capture the information of the span's internal structure and its surrounding context. In our experiments, we use the span representation which is first proposed in \parencite{lee2017end}, but with BERT \parencite{devlin2019bert} instead of a LSTM-based encoder to encode lexical information of the span and its surrounding, following \parencite{joshi2019coref}. The span representation is a vector embeddings which consists of context-dependent boundary representations with attentional representation of the head words over the span. The boundary representations are composed of first and last word-pieces of the span itself. The head words are automatically learned using additive attention [Bahdanau 2015] over each word-pieces in the span:
 \begin{align*}
 \alpha_{t} &= \pmb{w}_{\alpha} \cdot \text{FFNN}_{\alpha}(\pmb{x}_{t}^{*}) \\ 
 a_{i,t} &=  \frac{exp(\alpha_{t})}{\sum\limits_{k=start(i)}^{end(i)} exp(\alpha_{k})} \\ 
@@ -170,7 +169,6 @@ a_{i,t} &=  \frac{exp(\alpha_{t})}{\sum\limits_{k=start(i)}^{end(i)} exp(\alpha_
 \end{align*}
 
 where $\hat{\pmb{x}}_{i}$ is a weighted vector representation of word-pieces for span $i$. This representation is augmented by a $\mathbb{R}^{d}$ feature vector which encodes the size of span $i$ with $d = 20$. The final representation $\pmb{g}_{i}$ for span $i$ is formulated as the following:
-
 \begin{align*}
 \pmb{g}_{i} = [\pmb{x}_{start(i)}^{*}, \pmb{x}_{end(i)}^{*}, \hat{\pmb{x}}_{i}, \phi_{i}]
 \end{align*}  
@@ -185,9 +183,15 @@ where $\pmb{x}_{start(i)}^{*}$ and $\pmb{x}_{end(i)}^{*}$ are first and last wor
 
 
 % Tenney focus on span, Liu focus on CWR
-We focus on coreference arc prediction task, which is a part of probing tasks suite for contextual word embeddings [Liu 2019, Tenney 2019]. In this task, a probing model is trained to determine whether if two mentions refer to the same entity. We use the OntoNotes dataset [Pradhan et al 2012] from the CoNLL-2012 shared task. As OntoNotes only contains annotations for corefering mentions, we produce negative samples following the approach by [Liu 2019]......
+We focus on coreference arc prediction task, which is a part of probing tasks suite for contextual word embeddings \parencite{liu2019linguistic, tenney2019context}. In this task, a probing model is trained to determine whether if two mentions refer to the same entity. We use the OntoNotes dataset \parencite{conll} from the CoNLL-2012 shared task. As OntoNotes only contains annotations for corefering mentions, we produce negative samples following the approach by \parencite{liu2019linguistic}. For every pair of mentions $(w_{i}, w_{j})$, where they belong to the same coreference cluster and $w_{i}$ is an antecedent of $w_{j}$, we generate a negative example $(w_{random}, w_{j})$ where $w_{random}$ belongs to a different coreference cluster. This method ensures that the ratio between positive and negative examples is balanced. We also follow the approach of \parencite{tenney2019context} by using spans of word-pieces for mentions, as \parencite{liu2019linguistic}'s approach is limited on single-token mentions and therefore unable to fully exploit the information in the mention-span.
 
-We also follow the approach of [Tenney 2019] by using spans of word-pieces, as [Liu 2019]'s approach is limited on single-token entities and therefore unable to fully exploit the whole mention-span.
+\subsection{Probing Model}
+Our probing model is a simple feed-forward neural network, which is designed with a limited capacity to focus on what information that can be extracted from the span representations.
+As the input to our probing model, we take the span representation for pair of mention-spans $\pmb{g}_{1} = [\pmb{x}_{start(1)}^{*}, \pmb{x}_{end(1)}^{*}, \hat{\pmb{x}}_{1}, \phi_{1}]$ and $\pmb{g}_{2} = [\pmb{x}_{start(2)}^{*}, \pmb{x}_{end(2)}^{*}, \hat{\pmb{x}}_{2}, \phi_{2}]$, where both $\pmb{g}_{1}$ and $\pmb{g}_{2}$ are concatenated together and passed to the FFNN. The FFNN consists of a single hidden layer followed by a sigmoid output layer. The model is trained to minimize the binary cross-entropy with respect to the gold label $Y \in \{0,1\}$. Our probing architecture is shown in Figure ...
+
+%Draw figure ffnn with positive and and negative examples ala tenney
+% Explain using BERT-finetuned on OntoNotes and non-finetuned, base and large cased
+We explore mention-span representations obtained from BERT. <Explain about BERT here>. To study the quality of mention-span representations, we extract mention-span embeddings from BERT-base (12-layer Transformer, 768-hidden) and BERT-large (24-layer transformer, 1024-hidden). We also want to compare the effect of fine-tuning BERT-based models on the quality of span representations, therefore we use two variant of BERT models: a) fine-tuned on coreference resolution task and b) without any fine-tuning. The BERT models used in all the experiments are cased.
 
 \subsection{Baseline}
 As our baseline, w euse pre-trained BERT embeddings (not finetuned on OntoNotes) for all tokens within the mention span, which is then passed through a convolutional layer (with kernel width of 3 and 5) to incorporate the local context and followed by self-attention pooling operator to produce a fixed-length span representations. This is to model head words, inspired by approach from \textcite{tenney2019context}.
@@ -219,7 +223,7 @@ from the CoNLL-2012 shared task based on the OntoNotes dataset \parencite{conll}
 We extract the BERT span representations from a pipeline provided in a GitHub repository by \textcite{joshi2019coref} \footnote{\url{https://github.com/mandarjoshi90/coref}}. 
 
 \subsection{Implementation and Hyperparameters}. We extract the span representations from the coreference model by \textcite{joshi2019coref}. The model has been fine tuned on OntoNotes English data for 20 epochs using a dropout of 0.3, and learning rates of $1 * 10 ^{-5}$ and $2 * 10 ^{-4} $ with linear decay for the BERT parameters and the task parameters respectively. A batch size of 1 document has been used. 
-
+% Training the model
 
 \subsection{Baseline}
 

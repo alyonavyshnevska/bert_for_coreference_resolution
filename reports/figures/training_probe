@@ -1,6 +1,6 @@
-<mxfile host="app.diagrams.net" modified="2020-03-31T20:02:27.244Z" agent="5.0 (X11)" etag="oIDdcqLTKzFNZbWcgVtl" version="12.9.5" type="github">
+<mxfile host="app.diagrams.net" modified="2020-03-31T20:39:32.272Z" agent="5.0 (X11)" etag="53IMDbWujFKuA3wDwzsx" version="12.9.5" type="github">
   <diagram id="NPehFKIFIu8CPyw0MXN7" name="Page-1">
-    <mxGraphModel dx="1262" dy="683" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="1" shadow="0">
+    <mxGraphModel dx="870" dy="471" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="1" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -190,7 +190,7 @@
           </mxGeometry>
         </mxCell>
         <mxCell id="_CyyIJsTt76bJdViP3mj-7" value="$$\hat{Y}$$" style="rounded=0;whiteSpace=wrap;html=1;align=center;dashed=1;fillColor=#f5f5f5;strokeColor=#666666;fontColor=#333333;" vertex="1" parent="1">
-          <mxGeometry x="460" y="150" width="60" height="20" as="geometry" />
+          <mxGeometry x="470" y="140" width="40" height="30" as="geometry" />
         </mxCell>
         <mxCell id="_CyyIJsTt76bJdViP3mj-8" value="" style="endArrow=classic;html=1;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" edge="1" parent="1" source="1twWHycm8sE2_-fP3iOX-63" target="_CyyIJsTt76bJdViP3mj-7">
           <mxGeometry width="50" height="50" relative="1" as="geometry">
@@ -199,7 +199,25 @@
           </mxGeometry>
         </mxCell>
         <mxCell id="_CyyIJsTt76bJdViP3mj-12" value="$$Y$$" style="rounded=0;whiteSpace=wrap;html=1;align=center;dashed=1;fillColor=#f5f5f5;strokeColor=#666666;fontColor=#333333;" vertex="1" parent="1">
-          <mxGeometry x="460" y="130" width="60" height="20" as="geometry" />
+          <mxGeometry x="470" y="110" width="40" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="_CyyIJsTt76bJdViP3mj-14" value="Input tokens" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="30" y="460" width="40" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="_CyyIJsTt76bJdViP3mj-15" value="&lt;div&gt;Contextual&lt;/div&gt;&lt;div&gt;embeddings&lt;br&gt;&lt;/div&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="30" y="330" width="40" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="_CyyIJsTt76bJdViP3mj-16" value="Span representations" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="30" y="270" width="40" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="_CyyIJsTt76bJdViP3mj-18" value="Probing model" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="30" y="215" width="40" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="_CyyIJsTt76bJdViP3mj-19" value="Prediction" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="30" y="145" width="40" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="_CyyIJsTt76bJdViP3mj-20" value="Label" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="30" y="115" width="40" height="20" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>

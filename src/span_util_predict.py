@@ -4,6 +4,7 @@ from __future__ import print_function
 
 import sys
 import json
+import random
 
 import tensorflow as tf
 import numpy as np
@@ -16,10 +17,11 @@ def get_parent_child_emb(clusters, span_emb, span_starts, span_ends, label_type)
     """
     span_emb_list = []
     dist_list = []
-    men1_start = []
-    men1_end = []
-    men2_start = []
-    men2_end = []
+    men1_start = 0
+    men1_end = 0
+    men2_start = 0
+    men2_end = 0
+    doc_key = 0
 
     for coref_relation, dist in clusters:
         assert len(coref_relation) == 2, 'Member of mentions are not equal to 2'
@@ -30,11 +32,13 @@ def get_parent_child_emb(clusters, span_emb, span_starts, span_ends, label_type)
         if len(parent_idx) == 1 and len(child_idx) == 1:  # There are some mentions that exceeded max_span_width, this check skips such mentions.
             parent_child_span = tf.concat([span_emb[parent_idx], span_emb[child_idx]], 1)
             span_emb_list.append(parent_child_span)
-            men1_start.append(coref_relation[0][0])
-            men1_end.append(coref_relation[0][1])
-            men2_start.append(coref_relation[1][0])
-            men2_end.append(coref_relation[1][1])
+
+            men1_start = coref_relation[0][0]
+            men1_end = coref_relation[0][1]
+            men2_start = coref_relation[1][0]
+            men2_end = coref_relation[1][1]
             dist_list.append(dist)
+            doc_key = random.random()
 
 
     if span_emb_list:
@@ -47,13 +51,13 @@ def get_parent_child_emb(clusters, span_emb, span_starts, span_ends, label_type)
         elif label_type == "negative":
             gold_label = tf.zeros([parent_child_emb.shape[0],1], tf.float32)
 
-        return {'parent_child_emb': parent_child_emb,
+        info_dict = {'doc_key': doc_key,
                 'mention_dist': mention_dist,
-                'men1_start': men1_start,
-                'men1_end': men1_end,
-                'men2_start': men2_start,
-                'men2_end': men2_end,
-                'gold_label': gold_label }
+                'gold_label': gold_label}
+
+        embedded = tf.concat([parent_child_emb, men1_start, men1_end, men2_start, men2_end, doc_key, mention_dist, gold_label], 1)
+
+        return info_dict, embedded
     else:
         return None
 
@@ -67,10 +71,11 @@ def get_parent_child_emb_baseline(clusters, span_emb, span_starts, span_ends, la
     """
     span_emb_list = []
     dist_list = []
-    men1_start = []
-    men1_end = []
-    men2_start = []
-    men2_end = []
+    men1_start = 0
+    men1_end = 0
+    men2_start = 0
+    men2_end = 0
+    doc_key = 0
     embed_dim = 768
     max_span_width = 30
 
@@ -115,11 +120,13 @@ def get_parent_child_emb_baseline(clusters, span_emb, span_starts, span_ends, la
             child_emb = tf.pad(child_emb, child_paddings, "CONSTANT")
             parent_child_span = tf.concat([parent_emb, child_emb], 1)
             span_emb_list.append(parent_child_span)
-            men1_start.append(coref_relation[0][0])
-            men1_end.append(coref_relation[0][1])
-            men2_start.append(coref_relation[1][0])
-            men2_end.append(coref_relation[1][1])
+
+            men1_start = coref_relation[0][0]
+            men1_end = coref_relation[0][1]
+            men2_start = coref_relation[1][0]
+            men2_end = coref_relation[1][1]
             dist_list.append(dist)
+            doc_key = random.random()
 
     if span_emb_list:
         parent_child_emb = tf.concat(span_emb_list, 0)
@@ -131,18 +138,13 @@ def get_parent_child_emb_baseline(clusters, span_emb, span_starts, span_ends, la
         elif label_type == "negative":
             gold_label = tf.zeros([parent_child_emb.shape[0],1], tf.float32)
 
-        print('Embeddings created.')
+        info_dict = {'doc_key': doc_key,
+                     'mention_dist': mention_dist,
+                     'gold_label': gold_label}
 
-        return {'parent_child_emb': parent_child_emb,
-                'mention_dist': mention_dist,
-                'men1_start': men1_start,
-                'men1_end': men1_end,
-                'men2_start': men2_start,
-                'men2_end': men2_end,
-                'gold_label': gold_label }
+        embedded = tf.concat([parent_child_emb, men1_start, men1_end, men2_start, men2_end, doc_key, mention_dist, gold_label], 1)
+
+        return info_dict, embedded
     else:
         return None
-    # [parent_child_emb, mention_dist, men1_start, men1_end, men2_start, men2_end, doc_keys, gold_label]
-    # return tf.concat([parent_child_emb, mention_dist, men1_start, men1_end, men2_start, men2_end, doc_keys, gold_label], 1)
-
 

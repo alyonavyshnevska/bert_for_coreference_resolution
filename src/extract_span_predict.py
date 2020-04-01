@@ -56,7 +56,7 @@ if __name__ == "__main__":
 
                     info_dict_pos, parent_child_emb_pos = span_util_predict.get_parent_child_emb(pos_clusters, candidate_span_emb, candidate_starts, candidate_ends, "positive")
                     info_dict_neg, parent_child_emb_neg = span_util_predict.get_parent_child_emb(neg_clusters, candidate_span_emb, candidate_starts, candidate_ends, "negative")
-                    if parent_child_emb_neg:
+                    if parent_child_emb_neg is not None:
                         # Add the neg sample to dataset
                         parent_child_list.extend([parent_child_emb_neg])
                         # add sentence strings to info json
@@ -64,7 +64,7 @@ if __name__ == "__main__":
                         # write line of json with info with doc_key and sentences
                         output_file.write(json.dumps(info_dict_neg))
                         output_file.write("\n")
-                    if parent_child_emb_pos:
+                    if parent_child_emb_pos is not None:
                         # add only pos examples to dataset
                         parent_child_list.extend([parent_child_emb_pos])
                         info_dict_pos['sentences'] = example["sentences"]

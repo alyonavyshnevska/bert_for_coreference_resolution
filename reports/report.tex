@@ -162,6 +162,7 @@ The authors use probing models, also known as auxiliary or diagnostic classifier
 % Explain about probing model, possibly can be moved to Experiments. Explain also what is the input
 
 \subsection{Span Representation}
+\label{subsection:spanreps}
 
 Span representation plays an important role in span-ranking model \parencite{lee2017end}, since it is used to compute distribution over candidate antecedent spans. In order to be able to predict coreference relations accurately, span representation should also capture the information of the span's internal structure and its surrounding context. In our experiments, we use the span representation which is first proposed in \parencite{lee2017end}, but with BERT \parencite{devlin2019bert} instead of a LSTM-based encoder to encode lexical information of the span and its surrounding, following \parencite{joshi2019coref}. The span representation is a vector embeddings which consists of context-dependent boundary representations with attentional representation of the head words over the span. The boundary representations are composed of first and last word-pieces of the span itself. The head words are automatically learned using additive attention [Bahdanau 2015] over each word-pieces in the span:
 \begin{align*}
@@ -188,10 +189,10 @@ We focus on coreference arc prediction task, which is a part of probing tasks su
 
 
 \subsection{Probing Model}
-
+% add box to indicate frozen part!
 \begin{figure}[ht]
   \includegraphics[width=\textwidth]{probing_model}
-  \caption{Probing architecture. The feed-forward neural network is trained to extract information from the span representations $\pmb{g}_{1}$ and $\pmb{g}_{2}$. The example depicts a mention-pair, where $\pmb{g}_{1}$ corresponds to span representation of "President Obama", while $\pmb{g}_{2}$ corresponds to "he". We predict $\hat{Y}$ as positive for this example.}
+  \caption{Probing architecture for span representation. The feed-forward neural network is trained to extract information from the span representations $\pmb{g}_{1}$ and $\pmb{g}_{2}$, while all the parameters inside the dashed line are frozen. The example depicts a mention-pair, where $\pmb{g}_{1}$ corresponds to span representation of "President Obama", while $\pmb{g}_{2}$ corresponds to "he". We predict $\hat{Y}$ as positive for this example.}
   \label{fig:probing_model}
 \end{figure}
 
@@ -203,12 +204,7 @@ As the input to our probing model, we take the span representation for pair of m
 % Explain using BERT-finetuned on OntoNotes and non-finetuned, base and large cased
 We explore mention-span representations obtained from BERT. BERT \parencite{devlin2019bert} is a language representations model which uses deep Transformer architecture [Vaswani 2017], trained jointly with masked language model and next sentence prediction objective on BooksCorpus [Zhu et al 2015] and English Wikipedia, with an approximate total of 3,300M tokens. It also enables significant improvement in many downstream tasks with relatively minimal task-specific fine-tuning. To study the quality of mention-span representations, we extract mention-span embeddings from BERT-base (12-layer Transformer, 768-hidden) and BERT-large (24-layer transformer, 1024-hidden). We also want to compare the effect of fine-tuning BERT-based models on the quality of span representations, therefore we use two variant of BERT models: a) fine-tuned on coreference resolution task and b) without any fine-tuning.
 
-%\subsection{Baseline}
-%As our baseline, w euse pre-trained BERT embeddings (not finetuned on OntoNotes) for all tokens within the mention span, which is then passed through a convolutional layer (with kernel width of 3 and 5) to incorporate the local context and followed by self-attention pooling operator to produce a fixed-length span representations. This is to model head words, inspired by approach from \textcite{tenney2019context}.
 
-
-%\subsection{Long-Range Coreference}
-%In order to answer our second research question is whether the span representations encoded with a pre-trained BERT model simply modelling local coreference and will it be able to encode non-local coreference dependencies. In order to answer it, we bucket the test data into separate groups based on the the length of the coreference distance between the a mention and antecedent. We do separate qualitative and quantitative analysis on the buckets in order to analyse the differences in performance of our models based on how large the distance is. 
 
 \section{Experiments}
 % Explain that we do 2 experiments, first to see how the architectures improves span representation compared to non-finetuned BERT embeddings. Second one is to see long-range coreference phenomena.
@@ -222,32 +218,43 @@ We explore mention-span representations obtained from BERT. BERT \parencite{devl
 
 %In order to analyse the first research question, we experiment with BERT-based span representations in \textit{bert-coref} model. The model is finetuned on OntoNotes. A single span represenattion for a mention consists of BERT embeddings for its first and last word-pieces concatenated with the attention version of all word pieces in the span. These span embeddings are a part of a larger \textit{bert-coref} model. \textcite{joshi2019coref} calculate several scores on top of span representations: mention score, antecedent score, and coreference score, which is then passed through a softmax layer. \ref{fig:e2e_extra_info} illustrates these additional layers. 
 
+% move this part to analysis?
 %For our research we refer to the work of \textcite{liu2019linguistic}. The research argue that frozen contextual represenations of word sequences fed into linear models can show similar levels of performance as state of the art task-specific models on many NLP tasks. We are interested in analysing how BERT span representations fed into a linear model will perform on a coreference task. For our experiments we will use a similar strategy as the coreference arc prediction task proposed by t\textcite{liu2019linguistic}.
 
 %We extract the BERT span representations from a pipeline provided in a GitHub repository by \textcite{joshi2019coref} \footnote{\url{https://github.com/mandarjoshi90/coref}}. 
 
-We attempt to investigate to what extent the span representation proposed using BERT embeddings can encode coreference relations. We also want to answer whether if the proposed span representation is able to encode long-range coreference phenomena effectively, or is it just simply modeling local coreference relation? Our experiments, which we describe below, are intended to analyze coreference information contained in the span representation. 
+We attempt to investigate to what extent the proposed span representation using BERT embeddings and fine-tuned on corefence resolution task can encode coreference relations. We also want to answer whether if the span representation is able to encode long-range coreference phenomena effectively, or is it just simply modeling local coreference relation? Our experiments, which we describe below, are intended to analyze coreference information contained in the span representation used in the span-ranking model. 
 
-\subsection{Datasets}
+\subsection{Dataset}
 % REPHRASE THIS LATER, DON'T FOLLOW JOSHI
-For our experiments, we use the English coreference resolution annotation
-from the CoNLL-2012 shared task based on the OntoNotes dataset \parencite{conll}. It consists of about one million words of newswire, magazine articles, broadcast news, broadcast conversations, web data and conversational speech data, and the New Testament. The dataset is split into 2802 training documents, 343 validation documents, and 348 test documents. On average, the training documents contain 454 words. The largest document contains a maximum of 4009 words. The main evaluation of the dataset is the average F1 score of three metrics – \textit{MUC}, $B^3$ and $CEAF_ \phi4$ on the test set according to the official CoNLL-2012 evaluation scripts. Since OntoNotes does not provide annotations for negative examples, we generate our own negative examples according to the aforementioned method (\S \ref{subsection:corefarc}). We also cast the original annotation provided in the dataset into JSON format. 
-% we work with jsonlines format by joshi
+For our experiments, we use the coreference resolution annotation
+from the CoNLL-2012 shared task based on the OntoNotes dataset \parencite{conll}. The dataset comprises of roughly one million words from various genre such as newswire, magazine articles, broadcast news, broadcast conversations, web data and conversational speech data, and the New Testament in English, which was splitted into 2802 training documents, 343 validation documents, and 348 test documents. On average, the training documents contain 454 words. The largest document contains a maximum of 4009 words. Beside entities, coreference is also annotated for mentions that refer to the same event (e.g. "The European economy \textbf{grew} rapidly over the past years, \textbf{this growth} helped raising...).The main evaluation of the dataset is the average F1 score of three metrics – $MUC$ [Vilain 1995], $B^3$ [Bagga and Baldwin 1998] and $CEAF_ \phi4$ [Luo 2015]. Since OntoNotes only provide annotations for positive examples, we generate our own negative examples according to the aforementioned method (\S \ref{subsection:corefarc}). We also cast the original annotation provided in the dataset into JSON format in order to work with BERT-coref. 
+% we work with jsonlines format by joshi, also mention the number of train, test, dev after casting?
 
-\subsection{Implementation and Hyperparameters} %We extract the span representations from the coreference model by \textcite{joshi2019coref}. The model has been fine tuned on OntoNotes English data for 20 epochs using a dropout of 0.3, and learning rates of $1 * 10 ^{-5}$ and $2 * 10 ^{-4} $ with linear decay for the BERT parameters and the task parameters respectively. A batch size of 1 document has been used. 
+\subsection{Implementation and Hyperparameters} 
+%We extract the span representations from the coreference model by \textcite{joshi2019coref}. The model has been fine tuned on OntoNotes English data for 20 epochs using a dropout of 0.3, and learning rates of $1 * 10 ^{-5}$ and $2 * 10 ^{-4} $ with linear decay for the BERT parameters and the task parameters respectively. A batch size of 1 document has been used. 
 
 We extend the original Tensorflow implementation of BERT-coref \footnote{\url{https://github.com/mandarjoshi90/coref}} in order to build our probing model with Keras frontend [cite Keras]. Our probing model are trained for 50 epochs, using early stopping with patience of 3 and batch size of 512. For optimization, we use Adam [Kingma and Ba] with a learning rate of 0.001. The weights of the probing model is initialized with Kaiming initialization [Kaiming] and the size of the hidden layer is $d=1024$ with ReLU activation function.
 
 As mentioned previously, we use both original pre-trained BERT model without fine-tuning the encoder weights and BERT model that has been fine-tuned on coreference resolution task (i.e. on OntoNotes annotations). For fine-tuned BERT model, we take the models that yield the best performance on \parencite{joshi2019coref}, which were trained using 128 word-pieces for BERT-base and 384 word-pieces for BERT-large. The fine-tuned model was trained using splitted OntoNotes documents where each segment non-overlaps and fed as a separate instance. This is done as BERT can only accept sequences of at most 512 word-pieces and typically OntoNotes documents require multiple segments to be read entirely. In all of our experiments, we use the cased English BERT models.
 % original BERT
 
-
-
-
 \subsection{Baseline}
+%As our baseline, w euse pre-trained BERT embeddings (not finetuned on OntoNotes) for all tokens within the mention span, which is then passed through a convolutional layer (with kernel width of 3 and 5) to incorporate the local context and followed by self-attention pooling operator to produce a fixed-length span representations. This is to model head words, inspired by approach from \textcite{tenney2019context}.
+
+%max span width 30
+
+%pooling is only within bounds of span, means that the only information our model can access about the rest of the sentence is provided by contextual embeddings of words within the span
+
 % Describe span representation for baseline too! and padding part
 
+As our baseline model, we use span representations introduced in the edge probing framework \parencite{tenney2019context}. We take concatenated contextual embeddings for pair of mention-span $e^{(1)} = [x_{1}^{(1)}, x_{2}^{(1)}, x_{3}^{(1)}, ..., x_{n}^{(1)}]$ and $e^{(2)} = [x_{1}^{(2)}, x_{2}^{(2)}, x_{3}^{(2)}, ..., x_{n}^{(2)}]$ as inputs. We then use a shared projection layer, which is followed by the self-attention pooling operator in (\S \ref{subsection:spanreps}) to produce a fixed-length span representations and model head words for each mention-span. These mention-span representations are then passed to the probing model to predict whether they corefer or not. It is important to note that the self-attention pooling is computed only using tokens within the boundary of the span. As a result, the model can only access information about the context surrounding the mention span through the contextual embeddings. We take the word-piece embeddings from activations of BERT final layer, while freezing the encoder. The baseline probing architecture is depicted in Figure ...
+
+%explain why the baseline is as it is
+
 \subsection{Long-range Coreference}
+%In order to answer our second research question is whether the span representations encoded with a pre-trained BERT model simply modelling local coreference and will it be able to encode non-local coreference dependencies. In order to answer it, we bucket the test data into separate groups based on the the length of the coreference distance between the a mention and antecedent. We do separate qualitative and quantitative analysis on the buckets in order to analyse the differences in performance of our models based on how large the distance is. 
+
 
 % Add this after discussing baseline and long-range coreference
 % The resulting representations have a dimension of d=768 or 1024.
@@ -255,6 +262,8 @@ As mentioned previously, we use both original pre-trained BERT model without fin
 
 \section{Results}
 % Relate that it is possible to eliminate second step of the model? Seeing that probing model can be enough to predict coreference links?
+
+% We generate representation from the encoder and train model to make predictions from those features alone. If a simple model can be trained to predict coreference from the span representation alone, we can reasonably conclude that the span representation encode this information
 \begin{itemize}
 \item some nice plots here
 \item some tables here

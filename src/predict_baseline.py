@@ -1,14 +1,12 @@
 import h5py
 import numpy as np
 import argparse
-import csv
 import json
 
 from keras.models import load_model
-from sklearn.metrics import f1_score
 from keras_self_attention import SeqWeightedAttention
 
-# python3 baseline_predict.py --model --test_data --exp_name
+# python3 predict_baseline.py --model --test_data --exp_name
 
 def get_args():
     parser = argparse.ArgumentParser(description='Run probing experiment for c2f-coref with BERT embeddings')

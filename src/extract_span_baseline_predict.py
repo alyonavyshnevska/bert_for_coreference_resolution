@@ -40,13 +40,13 @@ if __name__ == "__main__":
 
     write_count = 0
     output_filename_json = output_filename + ".jsonlines"
-    output_filename_h5 = output_filename + str(write_count) + ".h5"
+    output_filename_h5 = output_filename + ".h5"
 
     with tf.Session() as session:
         session.run(tf.global_variables_initializer())
         model.restore_init(session)
 
-        with open(output_filename, 'w') as output_file:
+        with open(output_filename_json, 'w') as output_file:
             with open(input_filename) as input_file:
                 parent_child_list = []
                 write_count = 0

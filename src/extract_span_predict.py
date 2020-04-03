@@ -33,7 +33,7 @@ if __name__ == "__main__":
 
     write_count = 0
     output_filename_json = output_filename + ".jsonlines"
-    output_filename_h5 = output_filename + str(write_count) + ".h5"
+    output_filename_h5 = output_filename + ".h5"
 
     with tf.Session() as session:
         model.restore(session)

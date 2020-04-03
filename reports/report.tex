@@ -31,6 +31,7 @@
 
 \title{{\LARGE Coreference Resolution}\\[1.5mm]
 {\large Working Title, First Draft: Content, not Wording}\\[1.5mm]} %%% Span Representation And Long-Range Coreference
+%% Exploring Span Representations in Neural Coreference Resolution?
 \author{Patrick Kahardipraja, Olena Vyshnevska}%%% Fill in your name 
 \date{} % delete this line to display the current date
 
@@ -248,9 +249,21 @@ As mentioned previously, we use both original pre-trained BERT model without fin
 
 % Describe span representation for baseline too! and padding part
 
-As our baseline model, we use span representations introduced in the edge probing framework \parencite{tenney2019context}. We take concatenated contextual embeddings for pair of mention-span $e^{(1)} = [x_{1}^{(1)}, x_{2}^{(1)}, x_{3}^{(1)}, ..., x_{n}^{(1)}]$ and $e^{(2)} = [x_{1}^{(2)}, x_{2}^{(2)}, x_{3}^{(2)}, ..., x_{n}^{(2)}]$ as inputs. We then use a shared projection layer, which is followed by the self-attention pooling operator in (\S \ref{subsection:spanreps}) to produce a fixed-length span representations and model head words for each mention-span. These mention-span representations are then passed to the probing model to predict whether they corefer or not. It is important to note that the self-attention pooling is computed only using tokens within the boundary of the span. As a result, the model can only access information about the context surrounding the mention span through the contextual embeddings. We take the word-piece embeddings from activations of BERT final layer, while freezing the encoder. The baseline probing architecture is depicted in Figure ...
+As our baseline, we use span representations introduced in the edge probing framework \parencite{tenney2019context}. First of all, we take concatenated contextual embeddings for pair of mention-span $e^{(1)} = [x_{1}^{(1)}, x_{2}^{(1)}, x_{3}^{(1)}, ..., x_{n}^{(1)}]$ and $e^{(2)} = [x_{1}^{(2)}, x_{2}^{(2)}, x_{3}^{(2)}, ..., x_{n}^{(2)}]$ as inputs. We then project the concatenated contextual embeddings $e^{(1)}$ and $e^{(2)}$ to improve performance:
+\begin{align*}
+e^{(i)} = Ae^{(i)} + b
+\end{align*}
+
+where $i = (1,2)$, $A$ and $b$ are weights of the projection layer. The parameters in the projection layer are shared between representations $e^{(1)}$ and $e^{(2)}$. Afterwards, we apply self-attentional pooling operator in (\S \ref{subsection:spanreps}) over the projected representations to yield a fixed-length span representations. This also helps to model head words for each mention-span. These mention-span representations are then concatenated together and passed to the probing model to predict whether they corefer or not. It is important to note that the self-attention pooling is computed only using tokens within the boundary of the span. As a result, the model can only access information about the context surrounding the mention span through the contextual embeddings. We take the contextual embeddings from activations of non-finetuned BERT final layer, while freezing the encoder. The baseline probing architecture is depicted in Figure \ref{fig:baseline}. 
+
+\begin{figure}[ht]
+  \includegraphics[width=\textwidth]{baseline_span}
+  \caption{Probing architecture for baseline span representation. All parameters inside the dashed lines are frozen, while we train the feed-forward neural network to extract coreference information from the concatenated contextual embeddings $e^{(1)}$ and $e^{(2)}$. We used shared weights for both projection and self-attentional layer so that the model can learn the similarity between representation of mention-spans.}
+  \label{fig:baseline} 
+\end{figure}
 
 %explain why the baseline is as it is
+We compare the span representation used in the span-ranking model against the baseline, as it measures the performance that the probing model can achieve from the representation that is constructed from lexical priors alone, without any access to the local context within the mention-span. The resulting span representation have a dimension of $d = 768$ for BERT-base and $d = 1024$ for BERT-large.
 
 \subsection{Long-range Coreference}
 %In order to answer our second research question is whether the span representations encoded with a pre-trained BERT model simply modelling local coreference and will it be able to encode non-local coreference dependencies. In order to answer it, we bucket the test data into separate groups based on the the length of the coreference distance between the a mention and antecedent. We do separate qualitative and quantitative analysis on the buckets in order to analyse the differences in performance of our models based on how large the distance is. 

@@ -265,9 +265,20 @@ where $i = (1,2)$, $A$ and $b$ are weights of the projection layer. The paramete
 %explain why the baseline is as it is
 We compare the span representation used in the span-ranking model against the baseline, as it measures the performance that the probing model can achieve from the representation that is constructed from lexical priors alone, without any access to the local context within the mention-span. The resulting span representation have a dimension of $d = 768$ for BERT-base and $d = 1024$ for BERT-large.
 
+\pagebreak %for better formatting
 \subsection{Long-range Coreference}
 %In order to answer our second research question is whether the span representations encoded with a pre-trained BERT model simply modelling local coreference and will it be able to encode non-local coreference dependencies. In order to answer it, we bucket the test data into separate groups based on the the length of the coreference distance between the a mention and antecedent. We do separate qualitative and quantitative analysis on the buckets in order to analyse the differences in performance of our models based on how large the distance is. 
 
+%does it capture local context? How does it perform on non-local context?
+We want to understand better about the capability of the span representation from BERT encoder that is fine-tuned on coreference resolution task. Is it able to encode long-range coreference, or is it just simply modelling local coreference? We also want to answer how well does the model learn from local and long-range context within the mention-span. In order to answer both of these questions, we extend our baseline by introducing a convolutional layer to incorporate surrounding context and improves the baseline span representation. We replace the projection layer in our probing architecture with a fully-connected 1D CNN layer with a kernel width of 3 and 5, stride of 1 and same padding to properly include contextual embeddings at the beginning and end of the mention-span. This is equivalent to seeing $\pm$1 and $\pm$3 tokens around the center word respectively. We also initialize the weights of the CNN layer with Kaiming initialization [Kaiming]. Using this extended probing architecture with CNN layer as another baseline, which we will refer to as CNN baseline in this paper, enables us to see the contribution of local and non-local context to the performance of the probing model. 
+
+To investigate whether if the span representation is able to capture long-range coreference relation or not, we see how our probing model performs with various distance between mention-spans. We separate pair of mention-spans that appear in the OntoNotes test set into several buckets, based on the distance between last token of mention-span $w_{i}$ and first token of mention-span $w_{j}$, where $w_{j}$ occurs after $w_{i}$. Each bucket contains at least 50 examples of pair of mention-spans. 
+
+ 
+
+
+
+% comparing to this see how well the model incorporate local and long-range context within a span to represent each word?
 
 % Add this after discussing baseline and long-range coreference
 % The resulting representations have a dimension of d=768 or 1024.
@@ -277,6 +288,12 @@ We compare the span representation used in the span-ranking model against the ba
 % Relate that it is possible to eliminate second step of the model? Seeing that probing model can be enough to predict coreference links?
 
 % We generate representation from the encoder and train model to make predictions from those features alone. If a simple model can be trained to predict coreference from the span representation alone, we can reasonably conclude that the span representation encode this information
+
+%learning task specific contextual features help to encode information for the span representation
+We report the accuracies and F1 scores of our probing model with BERT encoder. Table .. compares the performance of probing model using span representations finetuned on OntoNotes dataset against baseline span representation and CNN baseline that utilize non-finetuned BERT encoder.
+
+%include score in Liu's as rough comparison? Although it is not directly comparable?
+
 \begin{itemize}
 \item some nice plots here
 \item some tables here

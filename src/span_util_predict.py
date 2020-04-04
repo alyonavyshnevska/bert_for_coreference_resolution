@@ -21,7 +21,7 @@ def get_parent_child_emb(clusters, span_emb, span_starts, span_ends, label_type)
     men1_end = []
     men2_start = []
     men2_end = []
-    doc_key = []
+    doc_key = random.random()
 
     for coref_relation, dist in clusters:
         assert len(coref_relation) == 2, 'Member of mentions are not equal to 2'
@@ -38,7 +38,7 @@ def get_parent_child_emb(clusters, span_emb, span_starts, span_ends, label_type)
             men2_start.append(coref_relation[1][0])
             men2_end.append(coref_relation[1][1])
             dist_list.append(dist)
-            doc_key.append(random.random())
+            # doc_key.append(random.random())
 
 
     if span_emb_list:
@@ -46,17 +46,17 @@ def get_parent_child_emb(clusters, span_emb, span_starts, span_ends, label_type)
         mention_dist = tf.dtypes.cast(tf.stack(dist_list, 0), tf.float32)
         mention_dist = tf.reshape(mention_dist, [-1,1])
 
-        men1_start = tf.dtypes.cast(tf.stack(men1_start, 0), tf.float32)
-        men1_start = tf.reshape(men1_start, [-1,1])
-        men1_end = tf.dtypes.cast(tf.stack(men1_end, 0), tf.float32)
-        men1_end = tf.reshape(men1_end, [-1,1])
-        men2_start = tf.dtypes.cast(tf.stack(men2_start, 0), tf.float32)
-        men2_start = tf.reshape(men2_start, [-1,1])
-        men2_end = tf.dtypes.cast(tf.stack(men2_end, 0), tf.float32)
-        men2_end = tf.reshape(men2_end, [-1,1])
-        doc_key_arr = tf.dtypes.cast(tf.stack(doc_key, 0), tf.float32)
+        men1_start_arr = tf.dtypes.cast(tf.stack(men1_start, 0), tf.float32)
+        men1_start_arr = tf.reshape(men1_start_arr, [-1,1])
+        men1_end_arr = tf.dtypes.cast(tf.stack(men1_end, 0), tf.float32)
+        men1_end_arr = tf.reshape(men1_end_arr, [-1,1])
+        men2_start_arr = tf.dtypes.cast(tf.stack(men2_start, 0), tf.float32)
+        men2_start_arr = tf.reshape(men2_start_arr, [-1,1])
+        men2_end_arr = tf.dtypes.cast(tf.stack(men2_end, 0), tf.float32)
+        men2_end_arr = tf.reshape(men2_end_arr, [-1,1])
+        doc_key_arr = [doc_key for i in range(parent_child_emb.shape[0])]
+        doc_key_arr = tf.dtypes.cast(tf.stack(doc_key_arr, 0), tf.float32)
         doc_key_arr = tf.reshape(doc_key_arr, [-1,1])
-        
 
         if label_type == "positive":
             gold_label = tf.ones([parent_child_emb.shape[0],1], tf.float32)
@@ -65,10 +65,14 @@ def get_parent_child_emb(clusters, span_emb, span_starts, span_ends, label_type)
             gold_label = tf.zeros([parent_child_emb.shape[0],1], tf.float32)
             json_label = [0 for i in range(parent_child_emb.shape[0])]
         info_dict = {'doc_key': doc_key,
-                'mention_dist': dist_list,
-                'gold_label': json_label}
+                     'mention_dist': dist_list,
+                     'gold_label': json_label,
+                     'men1_start': men1_start,
+                     'men1_end': men1_end,
+                     'men2_start': men2_start,
+                     'men2_end': men2_end}
 
-        embedded = tf.concat([parent_child_emb, men1_start, men1_end, men2_start, men2_end, doc_key_arr, mention_dist, gold_label], 1)
+        embedded = tf.concat([parent_child_emb, men1_start_arr, men1_end_arr, men2_start_arr, men2_end_arr, doc_key_arr, mention_dist, gold_label], 1)
 
         return info_dict, embedded
     else:
@@ -88,7 +92,7 @@ def get_parent_child_emb_baseline(clusters, span_emb, span_starts, span_ends, la
     men1_end = []
     men2_start = []
     men2_end = []
-    doc_key = []
+    doc_key = random.random()
     max_span_width = 30
 
 
@@ -138,7 +142,7 @@ def get_parent_child_emb_baseline(clusters, span_emb, span_starts, span_ends, la
             men2_start.append(coref_relation[1][0])
             men2_end.append(coref_relation[1][1])
             dist_list.append(dist)
-            doc_key.append(random.random())
+            # doc_key.append(random.random())
 
 
     if span_emb_list:
@@ -146,15 +150,16 @@ def get_parent_child_emb_baseline(clusters, span_emb, span_starts, span_ends, la
         mention_dist = tf.dtypes.cast(tf.stack(dist_list, 0), tf.float32)
         mention_dist = tf.reshape(mention_dist, [-1,1])
 
-        men1_start = tf.dtypes.cast(tf.stack(men1_start, 0), tf.float32)
-        men1_start = tf.reshape(men1_start, [-1,1])
-        men1_end = tf.dtypes.cast(tf.stack(men1_end, 0), tf.float32)
-        men1_end = tf.reshape(men1_end, [-1,1])
-        men2_start = tf.dtypes.cast(tf.stack(men2_start, 0), tf.float32)
-        men2_start = tf.reshape(men2_start, [-1,1])
-        men2_end = tf.dtypes.cast(tf.stack(men2_end, 0), tf.float32)
-        men2_end = tf.reshape(men2_end, [-1,1])
-        doc_key_arr = tf.dtypes.cast(tf.stack(doc_key, 0), tf.float32)
+        men1_start_arr = tf.dtypes.cast(tf.stack(men1_start, 0), tf.float32)
+        men1_start_arr = tf.reshape(men1_start_arr, [-1,1])
+        men1_end_arr = tf.dtypes.cast(tf.stack(men1_end, 0), tf.float32)
+        men1_end_arr = tf.reshape(men1_end_arr, [-1,1])
+        men2_start_arr = tf.dtypes.cast(tf.stack(men2_start, 0), tf.float32)
+        men2_start_arr = tf.reshape(men2_start_arr, [-1,1])
+        men2_end_arr = tf.dtypes.cast(tf.stack(men2_end, 0), tf.float32)
+        men2_end_arr = tf.reshape(men2_end_arr, [-1,1])
+        doc_key_arr = [doc_key for i in range(parent_child_emb.shape[0])]
+        doc_key_arr = tf.dtypes.cast(tf.stack(doc_key_arr, 0), tf.float32)
         doc_key_arr = tf.reshape(doc_key_arr, [-1,1])
 
         if label_type == "positive":
@@ -163,13 +168,15 @@ def get_parent_child_emb_baseline(clusters, span_emb, span_starts, span_ends, la
         elif label_type == "negative":
             gold_label = tf.zeros([parent_child_emb.shape[0],1], tf.float32)
             json_label = [0 for i in range(parent_child_emb.shape[0])]
-
         info_dict = {'doc_key': doc_key,
-                'mention_dist': dist_list,
-                'gold_label': json_label}
+                     'mention_dist': dist_list,
+                     'gold_label': json_label,
+                     'men1_start': men1_start,
+                     'men1_end': men1_end,
+                     'men2_start': men2_start,
+                     'men2_end': men2_end}
 
-
-        embedded = tf.concat([parent_child_emb, men1_start, men1_end, men2_start, men2_end, doc_key_arr, mention_dist, gold_label], 1)
+        embedded = tf.concat([parent_child_emb, men1_start_arr, men1_end_arr, men2_start_arr, men2_end_arr, doc_key_arr, mention_dist, gold_label], 1)
 
         return info_dict, embedded
     else:

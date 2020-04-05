@@ -15,6 +15,9 @@
 \usepackage{graphicx}
 \usepackage{amsmath}
 \usepackage{amssymb}
+\usepackage{booktabs, dcolumn, caption, bm}
+\newcolumntype{d}[1]{D{.}{.}{#1}} % "decimal" column type
+\renewcommand{\ast}{{}^{\textstyle *}} % for raised "asterisks"
 \graphicspath{ {./figures/} }
 \usepackage{wrapfig}
 \addbibresource{references.bib}
@@ -274,7 +277,7 @@ We want to understand better about the capability of the span representation fro
 
 To investigate whether if the span representation is able to capture long-range coreference relation or not, we see how our probing model performs with various distance between mention-spans. We separate pair of mention-spans that appear in the OntoNotes test set into several buckets, based on the distance between last token of mention-span $w_{i}$ and first token of mention-span $w_{j}$, where $w_{j}$ occurs after $w_{i}$. Each bucket contains at least 50 examples of pair of mention-spans. 
 
- 
+
 
 
 
@@ -290,15 +293,51 @@ To investigate whether if the span representation is able to capture long-range 
 % We generate representation from the encoder and train model to make predictions from those features alone. If a simple model can be trained to predict coreference from the span representation alone, we can reasonably conclude that the span representation encode this information
 
 %learning task specific contextual features help to encode information for the span representation
-We report the accuracies and F1 scores of our probing model with BERT encoder. Table .. compares the performance of probing model using span representations finetuned on OntoNotes dataset against baseline span representation and CNN baseline that utilize non-finetuned BERT encoder.
 
+% interesting to see that all baseline CNN and normal performs roughly the same
+% CNN performs lower -> maybe because encoder is frozen
+
+% explain how choice of span representation may help in encoding the informance required for the task.
+
+% speculate BERT only improves a bit on semantic task, but a lot on syntactic task? (agree with tenney)
+
+% explain how it is able to use local and non-local context
+
+% interesting to see baseline still score so high, perhaps BERT architecture or MLM has something to do with this?
+
+%should try using Joshi's span representation with original BERT weights, if still perform better, then it is the best span representation so far, if it is not, then fine-tuning is the important matter that encodes all the information. This opens up a venue to search for a better span representation.
+We report the accuracies and F1 scores of our probing model with span representations constructed with BERT encoder. Table \ref{table:spanscore} compares the performance of probing model using span representations finetuned on OntoNotes dataset against baseline span representation and CNN baseline that utilize non-finetuned BERT encoder. Using a simple linear probing model, we demonstrate that span representation in BERT-coref encodes a significant amount of coreference information, as we are able to train the probing model to predict whether a pair of mention spans corefer or not based on their span representations alone. Both BERT-base c2f and BERT-large c2f consistently scores above 90\% (accuracy and F1 score) on OntoNotes test set. 
+
+\begin{table}[ht]
+\captionsetup{singlelinecheck = false, justification=justified}
+\setlength\tabcolsep{0pt} % let LaTeX figure out amount of inter-column whitespace
+\label{turns}
+\begin{tabular*}{\textwidth}{@{\extracolsep{\fill}} l *{3}{d{2.4}} }
+\toprule
+ & \multicolumn{1}{c}{Accuracy} & \multicolumn{1}{c}{F1 Score}\\
+\midrule
+\midrule
+BERT-base c2f (cased, fine-tuned)     & 92.62 & 92.69 \\
+BERT-large c2f (cased, fine-tuned)    & 93.65\ast & 93.68\ast \\
+\midrule
+BERT-base CNN (cased, original, kernel=3)  & 89.51 & 89.91  \\
+BERT-base CNN (cased, original, kernel=5)  & 89.04 & 89.28 \\
+BERT-large CNN (cased, original, kernel=3) & 90.27 & 90.35 \\
+BERT-large CNN (cased, original, kernel=5) & 88.09 & 88.28 \\
+\midrule
+BERT-base (cased, original) baseline		 & 90.37 & 90.65 \\
+BERT-large (cased, original) baseline     & 91.47 & 91.69 \\
+\bottomrule
+\end{tabular*}
+\caption{Comparison of the probing model's performance with various mention-span representations evaluated on OntoNotes test set. Asterisk denotes the best performance on each metric. BERT-large c2f improves the accuracy and F1 score over the probing baseline by 3.28\% and 3.03\% for the base variant, while for BERT-large, the improvements are 2.18\% and 1.99\% respectively.}
+\label{table:spanscore}
+\end{table}
 %include score in Liu's as rough comparison? Although it is not directly comparable?
 
-\begin{itemize}
-\item some nice plots here
-\item some tables here
-\end{itemize}
+We observe that both BERT-base c2f and BERT-large c2f performs better in predicting coreference arc between a pair of mention-spans compared to their respective baseline (by 2.22 points for accuracy and 2.02 F1 points on average). We attribute this significant improvement to context-dependent boundary representations and span width embeddings in the span representation, as the baseline representation lacks both of these features. We find that although training the contextual probing model to learn contextual features for coreference arc prediction helps in encoding the necessary coreference information into the baseline span representation, it still cannot outperform the probing model that utilizes span representation in BERT-coref. This might be caused by better coreference-related features that is learned by BERT encoder when it is fine-tuned on OntoNotes.
 
+We find that fine-tuning the span representation on coreference resolution task helps to encode local and long-range context inside the mention-span efficiently. This can be observed from the performance of CNN baseline, where the probing model is trained with 1D CNN layer with kernel width of 3 and 5 to allows us to see contribution of local and long-range dependencies, but ultimately still perform lower compared to BERT-coref. Surprisingly, our baseline span representation which is constructed from only lexical prior performs better compared to the CNN baseline span representation on both metrics. We attribute this due to our decision of taking contextual embeddings from the final layer of pre-trained BERT, as most transferrable representations from contextual encoders trained with language modelling objectives tend to occur in the intermediate layers, and that the topmost layers might be overly specialized for next-word prediction [Blevins 2018, Peters 2018a, Peters2018b, Liu2019]. 
+%span ends span beginning
 \section{Discussion}
 
 \begin{itemize}
@@ -318,7 +357,8 @@ word embeddings to capture similarity between words, a property that many tradit
 \begin{itemize}
 \item everything we don't have the time for
 \item mention other corpora that could be used for finetuning (Winogrande, GAP...)
-\item apply roberta, etc.
+\item apply roberta
+\item try building span representations from intermediate layers, use scalar mixing
 
 \end{itemize}
 

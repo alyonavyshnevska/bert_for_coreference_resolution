@@ -31,15 +31,15 @@ if __name__ == "__main__":
     # men2_end, doc_key_arr, mention_dist, gold_label]
     with h5py.File(args.test_data_h5, 'r') as f:
         test_data = f.get('span_representations').value
-        x_test = test_data[:, :-7]
+        x_test = test_data[:, :-2]
         y_test = test_data[:, -1].astype(int)
+        doc_key_arr = test_data[:, -2].astype(float)
 
-        mention_dist = test_data[:, -2].astype(int)
-        doc_key_arr = test_data[:, -3].astype(float)
-        men2_end = test_data[:, -4].astype(int)
-        men2_start = test_data[:, -5].astype(int)
-        men1_end = test_data[:, -6].astype(int)
-        men1_start = test_data[:, -7].astype(int)
+        # mention_dist = test_data[:, -2].astype(int)
+        # men2_end = test_data[:, -4].astype(int)
+        # men2_start = test_data[:, -5].astype(int)
+        # men1_end = test_data[:, -6].astype(int)
+        # men1_start = test_data[:, -7].astype(int)
 
     test_predict = (np.asarray(model.predict(x_test))).round()
 
@@ -53,16 +53,19 @@ if __name__ == "__main__":
                 ind = doc_key_arr.index(doc_key)
                 # get prediction for this doc key
                 example['pred'] = test_predict[ind]
-                example['men2_end'] = men2_end[ind]
-                example['men2_start'] = men2_start[ind]
-                example['men1_start'] = men1_start[ind]
-                example['men1_end'] = men1_end[ind]
+                # example['men2_end'] = men2_end[ind]
+                # example['men2_start'] = men2_start[ind]
+                # example['men1_start'] = men1_start[ind]
+                # example['men1_end'] = men1_end[ind]
 
                 output_file.write(json.dumps(example))
                 output_file.write("\n")
 
-
-#        info_dict = {'doc_key': doc_key,
-#                'mention_dist': dist_list,
-#                'gold_label': json_label}
+# info_dict = {'doc_key': doc_key,
+#              'mention_dist': dist_list,
+#              'gold_label': json_label,
+#              'men1_start': men1_start,
+#              'men1_end': men1_end,
+#              'men2_start': men2_start,
+#              'men2_end': men2_end}
 

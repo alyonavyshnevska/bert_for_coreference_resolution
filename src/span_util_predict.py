@@ -43,17 +43,17 @@ def get_parent_child_emb(clusters, span_emb, span_starts, span_ends, label_type)
 
     if span_emb_list:
         parent_child_emb = tf.concat(span_emb_list, 0)
-        mention_dist = tf.dtypes.cast(tf.stack(dist_list, 0), tf.float32)
-        mention_dist = tf.reshape(mention_dist, [-1,1])
+        # mention_dist = tf.dtypes.cast(tf.stack(dist_list, 0), tf.float32)
+        # mention_dist = tf.reshape(mention_dist, [-1,1])
 
-        men1_start_arr = tf.dtypes.cast(tf.stack(men1_start, 0), tf.float32)
-        men1_start_arr = tf.reshape(men1_start_arr, [-1,1])
-        men1_end_arr = tf.dtypes.cast(tf.stack(men1_end, 0), tf.float32)
-        men1_end_arr = tf.reshape(men1_end_arr, [-1,1])
-        men2_start_arr = tf.dtypes.cast(tf.stack(men2_start, 0), tf.float32)
-        men2_start_arr = tf.reshape(men2_start_arr, [-1,1])
-        men2_end_arr = tf.dtypes.cast(tf.stack(men2_end, 0), tf.float32)
-        men2_end_arr = tf.reshape(men2_end_arr, [-1,1])
+        # men1_start_arr = tf.dtypes.cast(tf.stack(men1_start, 0), tf.float32)
+        # men1_start_arr = tf.reshape(men1_start_arr, [-1,1])
+        # men1_end_arr = tf.dtypes.cast(tf.stack(men1_end, 0), tf.float32)
+        # men1_end_arr = tf.reshape(men1_end_arr, [-1,1])
+        # men2_start_arr = tf.dtypes.cast(tf.stack(men2_start, 0), tf.float32)
+        # men2_start_arr = tf.reshape(men2_start_arr, [-1,1])
+        # men2_end_arr = tf.dtypes.cast(tf.stack(men2_end, 0), tf.float32)
+        # men2_end_arr = tf.reshape(men2_end_arr, [-1,1])
         doc_key_arr = [doc_key for i in range(parent_child_emb.shape[0])]
         doc_key_arr = tf.dtypes.cast(tf.stack(doc_key_arr, 0), tf.float32)
         doc_key_arr = tf.reshape(doc_key_arr, [-1,1])
@@ -72,7 +72,7 @@ def get_parent_child_emb(clusters, span_emb, span_starts, span_ends, label_type)
                      'men2_start': men2_start,
                      'men2_end': men2_end}
 
-        embedded = tf.concat([parent_child_emb, men1_start_arr, men1_end_arr, men2_start_arr, men2_end_arr, doc_key_arr, mention_dist, gold_label], 1)
+        embedded = tf.concat([parent_child_emb, doc_key_arr, gold_label], 1)
 
         return info_dict, embedded
     else:
@@ -147,17 +147,17 @@ def get_parent_child_emb_baseline(clusters, span_emb, span_starts, span_ends, la
 
     if span_emb_list:
         parent_child_emb = tf.concat(span_emb_list, 0)
-        mention_dist = tf.dtypes.cast(tf.stack(dist_list, 0), tf.float32)
-        mention_dist = tf.reshape(mention_dist, [-1,1])
+        # mention_dist = tf.dtypes.cast(tf.stack(dist_list, 0), tf.float32)
+        # mention_dist = tf.reshape(mention_dist, [-1,1])
 
-        men1_start_arr = tf.dtypes.cast(tf.stack(men1_start, 0), tf.float32)
-        men1_start_arr = tf.reshape(men1_start_arr, [-1,1])
-        men1_end_arr = tf.dtypes.cast(tf.stack(men1_end, 0), tf.float32)
-        men1_end_arr = tf.reshape(men1_end_arr, [-1,1])
-        men2_start_arr = tf.dtypes.cast(tf.stack(men2_start, 0), tf.float32)
-        men2_start_arr = tf.reshape(men2_start_arr, [-1,1])
-        men2_end_arr = tf.dtypes.cast(tf.stack(men2_end, 0), tf.float32)
-        men2_end_arr = tf.reshape(men2_end_arr, [-1,1])
+        # men1_start_arr = tf.dtypes.cast(tf.stack(men1_start, 0), tf.float32)
+        # men1_start_arr = tf.reshape(men1_start_arr, [-1,1])
+        # men1_end_arr = tf.dtypes.cast(tf.stack(men1_end, 0), tf.float32)
+        # men1_end_arr = tf.reshape(men1_end_arr, [-1,1])
+        # men2_start_arr = tf.dtypes.cast(tf.stack(men2_start, 0), tf.float32)
+        # men2_start_arr = tf.reshape(men2_start_arr, [-1,1])
+        # men2_end_arr = tf.dtypes.cast(tf.stack(men2_end, 0), tf.float32)
+        # men2_end_arr = tf.reshape(men2_end_arr, [-1,1])
         doc_key_arr = [doc_key for i in range(parent_child_emb.shape[0])]
         doc_key_arr = tf.dtypes.cast(tf.stack(doc_key_arr, 0), tf.float32)
         doc_key_arr = tf.reshape(doc_key_arr, [-1,1])
@@ -176,7 +176,7 @@ def get_parent_child_emb_baseline(clusters, span_emb, span_starts, span_ends, la
                      'men2_start': men2_start,
                      'men2_end': men2_end}
 
-        embedded = tf.concat([parent_child_emb, men1_start_arr, men1_end_arr, men2_start_arr, men2_end_arr, doc_key_arr, mention_dist, gold_label], 1)
+        embedded = tf.concat([parent_child_emb, doc_key_arr, gold_label], 1)
 
         return info_dict, embedded
     else:

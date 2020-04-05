@@ -31,7 +31,7 @@ if __name__ == "__main__":
     model = CustomCorefIndependent(config)
     saver = tf.train.Saver()
 
-    write_count = 0
+    # write_count = 0
     output_filename_json = output_filename + ".jsonlines"
     output_filename_h5 = output_filename + ".h5"
 
@@ -76,7 +76,7 @@ if __name__ == "__main__":
                         print("Decoded {} examples.".format(example_num + 1))
 
                     if (example_num + 1) % 350 == 0 or (example_num + 1) == num_lines:
-                        write_count += 1
+                        # write_count += 1
                         print('Writing files: {}'.format(output_filename_h5))
                         sys.stdout.flush()
                         parent_child_reps = tf.concat(parent_child_list, 0).eval()

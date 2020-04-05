@@ -42,6 +42,7 @@ if __name__ == "__main__":
 
 
     test_predict = (np.asarray(model.predict([test_parent_emb, test_child_emb]))).round()
+    # test_predict = (np.asarray(model.predict(x_test))).round()
 
     with open(exp_name, 'w') as output_file:
         with open(test_data_json, 'r') as input_file:
@@ -53,7 +54,7 @@ if __name__ == "__main__":
                 idxs = np.where(np.isclose(doc_key_arr, doc_key))
                 idxs = list(idxs)
                 for idx in idxs[0]:
-                    print(idx)
+                    # print(idx)
                     pred.append(int(test_predict[int(idx)][0]))
                 example['pred'] = list(pred)
 

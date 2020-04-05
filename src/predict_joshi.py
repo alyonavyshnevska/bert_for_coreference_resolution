@@ -36,9 +36,6 @@ if __name__ == "__main__":
         doc_key_arr = test_data[:, -2].astype(float)
 
     test_predict = (np.asarray(model.predict(x_test))).round()
-    print(doc_key_arr[:20])
-    print(len(doc_key_arr))
-    print(len(test_predict))
 
     with open(exp_name, 'w') as output_file:
         with open(test_data_json, 'r') as input_file:
@@ -49,12 +46,9 @@ if __name__ == "__main__":
                 doc_key = example['doc_key']
                 idxs = np.where(np.isclose(doc_key_arr, doc_key))
                 idxs = list(idxs)
-                print(idxs)
                 for idx in idxs[0]:
-                    print(idx)
                     pred.append(int(test_predict[int(idx)][0]))
                 example['pred'] = list(pred)
-                print(pred)
 
 
                 output_file.write(json.dumps(example))

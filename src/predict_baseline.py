@@ -52,12 +52,10 @@ if __name__ == "__main__":
                 doc_key = example['doc_key']
                 idxs = np.where(np.isclose(doc_key_arr, doc_key))
                 idxs = list(idxs)
-                print(idxs)
                 for idx in idxs[0]:
                     print(idx)
                     pred.append(int(test_predict[int(idx)][0]))
                 example['pred'] = list(pred)
-                print(pred)
 
                 output_file.write(json.dumps(example))
                 output_file.write("\n")

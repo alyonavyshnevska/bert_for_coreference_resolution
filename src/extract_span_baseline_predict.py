@@ -13,8 +13,8 @@ import util
 import h5py
 from custom_coref import CustomCorefIndependent
 
-# python3 extract_span_baseline_predict.py bert_base test.english.128.probe_reduced.jsonlines test_bert_base_baseline_128.h5
-# python3 extract_span_baseline_predict.py bert_large test.english.384.probe_reduced.jsonlines test_bert_base_baseline_384.h5
+# python3 extract_span_baseline_predict.py bert_base test.english.128.probe_reduced.jsonlines test_bert_base_baseline_128
+# python3 extract_span_baseline_predict.py bert_large test.english.384.probe_reduced.jsonlines test_bert_base_baseline_384
 if __name__ == "__main__":
     config = util.initialize_from_env()
     log_dir = config["log_dir"]
@@ -38,7 +38,7 @@ if __name__ == "__main__":
     model = CustomCorefIndependent(config)
     saver = tf.train.Saver()
 
-    write_count = 0
+    # write_count = 0
     output_filename_json = output_filename + ".jsonlines"
     output_filename_h5 = output_filename + ".h5"
 
@@ -85,7 +85,7 @@ if __name__ == "__main__":
                         print("Decoded {} examples.".format(example_num + 1))
 
                     if (example_num + 1) % 350 == 0 or (example_num + 1) == num_lines:
-                        write_count += 1
+                        # write_count += 1
                         print('Writing files: {}'.format(output_filename_h5))
                         sys.stdout.flush()
                         parent_child_reps = tf.concat(parent_child_list, 0).eval()

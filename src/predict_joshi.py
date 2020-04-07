@@ -11,9 +11,9 @@ from keras_self_attention import SeqWeightedAttention
 def get_args():
     parser = argparse.ArgumentParser(description='Run probing experiment for c2f-coref with BERT embeddings')
 
-    parser.add_argument('--model', type=str, default=None)
+    parser.add_argument('--model', type=str, default=None)      # with extension
     parser.add_argument('--test_data', type=str, default=None)  # without extension
-    parser.add_argument('--exp_name', type=str, default=None)   # export name without extension
+    parser.add_argument('--exp_name', type=str, default=None)   # without extension
     args = parser.parse_args()
     return args
 
@@ -29,40 +29,29 @@ if __name__ == "__main__":
 
     # span representations: [parent_child_emb, men1_start, men1_end, men2_start,
     # men2_end, doc_key_arr, mention_dist, gold_label]
-    with h5py.File(args.test_data_h5, 'r') as f:
+    with h5py.File(test_data_h5, 'r') as f:
         test_data = f.get('span_representations').value
-        x_test = test_data[:, :-7]
+        x_test = test_data[:, :-2]
         y_test = test_data[:, -1].astype(int)
-
-        mention_dist = test_data[:, -2].astype(int)
-        doc_key_arr = test_data[:, -3].astype(float)
-        men2_end = test_data[:, -4].astype(int)
-        men2_start = test_data[:, -5].astype(int)
-        men1_end = test_data[:, -6].astype(int)
-        men1_start = test_data[:, -7].astype(int)
+        doc_key_arr = test_data[:, -2].astype(float)
 
     test_predict = (np.asarray(model.predict(x_test))).round()
 
     with open(exp_name, 'w') as output_file:
         with open(test_data_json, 'r') as input_file:
             for line in input_file.readlines():
+                pred = []
                 example = json.loads(line)
                 # get the dockey of this example
-                doc_key = example['doc_key'].astype(float)
-                # find the index of this dockey to get the prediction at the same index
-                ind = doc_key_arr.index(doc_key)
-                # get prediction for this doc key
-                example['pred'] = test_predict[ind]
-                example['men2_end'] = men2_end[ind]
-                example['men2_start'] = men2_start[ind]
-                example['men1_start'] = men1_start[ind]
-                example['men1_end'] = men1_end[ind]
+                doc_key = example['doc_key']
+                idxs = np.where(np.isclose(doc_key_arr, doc_key))
+                idxs = list(idxs)
+                for idx in idxs[0]:
+                    pred.append(int(test_predict[int(idx)][0]))
+                example['pred'] = list(pred)
+
 
                 output_file.write(json.dumps(example))
                 output_file.write("\n")
 
-
-#        info_dict = {'doc_key': doc_key,
-#                'mention_dist': dist_list,
-#                'gold_label': json_label}
 

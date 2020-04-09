@@ -15,6 +15,7 @@
 \usepackage{graphicx}
 \usepackage{amsmath}
 \usepackage{amssymb}
+\usepackage{subfig}
 \usepackage{booktabs, dcolumn, caption, bm}
 \newcolumntype{d}[1]{D{.}{.}{#1}} % "decimal" column type
 \renewcommand{\ast}{{}^{\textstyle *}} % for raised "asterisks"
@@ -367,7 +368,15 @@ BERT-large c2f (cased, fine-tuned)    & 93.65 & 93.68 \\
 \label{table:ablation}
 \end{table}
 
+\subsection{Encoding Long-range Coreference}
 
+We compare how our probing model performs with various span separation distance in order to explore whether if the span-representation is able to encode long-range coreference or not. Figure \ref{fig:longrange_result} depicts F1 score as a function of the distance of wordpiece tokens between a pair of mention-spans. Although performance with BERT models degrade with larger distance over pair of mention-span, the span representation in BERT-coref holds up better in general compared to the baseline or CNN baseline. The BERT-base variant experiences minor degradation in performance to 5 points when $d=125$ tokens, while for BERT-large, the F1 score dropped only by 7 points between $d=0$ tokens and $d=250$ tokens, which suggests that the depth of Transformer layer helps to encode long-range coreference. However, we lack the evidence that suggest that the span representation is able to encode long-range coreference relation efficiently, seeing that although already the encoder has been fine-tuned on OntoNotes, the model still cannot perform consistently across distant spans, with the lowest F1 score of 0.67 and 0.75 points for BERT-base and BERT-large respectively, when $d=451$ to $475$ tokens.
+\begin{figure}[ht]
+\subfloat[]{\label{subfig:bertbase}\includegraphics[clip, width=\textwidth]{long_range_bert_base}} \\
+\subfloat[]{\label{subfig:bertlarge}\includegraphics[clip, width=\textwidth]{long_range_bert_large}}
+  \caption{F1 score of probing model as a function of separating distance between two mention-spans with BERT-base (\ref{subfig:bertbase}) and BERT-large (\ref{subfig:bertlarge}) on test set. The performance with either BERT-base or BERT-large tend to fall off as distance between wordpiece token increases.}
+  \label{fig:longrange_result} 
+\end{figure}
 
 \section{Discussion}
 

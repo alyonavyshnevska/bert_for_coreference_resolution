@@ -156,7 +156,41 @@ The authors use probing models, also known as auxiliary or diagnostic classifier
 
 \section{Overview of Span-Ranking Architecture}
 % Move Lee 2017, Lee 2018, Joshi 2019 here, with a more in-depth explanation, separate it from Related Work
+The first coreference resolution model that is trained in an end-to-end manner without relying on any syntactic parser or hand-engineered mention detector is introduced by \parencite{lee2017end}. To construct correct coreference clusters, the neural model learn to jointly model mention detection and coreference prediction using span-ranking approach.  With span-ranking approach, the model is able to consider all spans in a document up to a defined maximum length as a candidate mention and select the corresponding antecedent for each mention based on the antecedent distribution. We will further refer to the model as \textit{e2e-coref} in the paper.
 
+The span-ranking architecture estimates the joint probability distribution of mention-spans that belong to the same cluster given the document, by calculating product of multinomials for each span:
+\begin{align*}
+P(y_{1}, ..., y_{n}|D) &= \prod\limits_{i=1}^{N} P(y_{i}|D) \\
+&= \prod\limits_{i=1}^{N} \frac{\text{exp}(s(i, y_{i}))}{\sum_{y' \in \mathcal{Y}(i)} \text{exp}(s(i, y'))}
+\end{align*}
+
+where $s(i,j)$ is a pairwise score for a coreference link between span $i$ and span $j$ in document $D$. The coreference score is composed three factors: (1) $s_{m}(i)$, mention score of $i$ (i.e. how possible is the span $i$ to be a mention), (2) $s_{m}(j)$, mention score of $j$ and (3) $s_{a}(i,j)$, joint score of $i$ and $j$ (i.e. assuming that $i$ and $j$ are both mentions, how possible that they both refer to the same entity), formulated as the following:
+\begin{align*}
+s(i, j) = \begin{cases}
+s_{m}(i) + s_{m}(j) + s_{a}(i, j) & j \neq \epsilon \\
+0 & j = \epsilon
+\end{cases}
+\end{align*} 
+
+where $\epsilon$ is a dummy antecedent to represent that the span is not a mention or the case where it is a mention that coreferent with none of the previous mention span.
+
+In this model, a bidirectional LSTM \parencite{lstm} is used to compute vector representations $\pmb{g}_{i}$ of each possible span $i$ from the word and character embeddings in the span. The word embeddings itself are a fixed concatenation of GloVe \parencite{pennington2014glove} and Turian embeddings \parencite{turian-etal-2010-word}. The character embeddings are learned using CNN, with three various window sizes. It also provide morphological information and allows the model to deal with rare words. The span representation $\pmb{g}_{i}$, which we will describe in detail in the following section, is then used to compute $s_{m}(i)$ and $s_{a}(i, j)$ via feed-forward neural networks as follows:
+\begin{align*}
+s_{m}(i) &= \pmb{w}_{m} \cdot \text{FFNN}_{m}(\pmb{g}_{i}) \\
+s_{a}(i, j) &= \pmb{w}_{a} \cdot \text{FFNN}_{a}([\pmb{g}_{i}, \pmb{g}_{j}, \pmb{g}_{i} \odot \pmb{g}_{j}, \phi(i, j)])
+\end{align*}
+
+where $\odot$ denotes the Hadamard product between $\pmb{g}_{i}$ and $\pmb{g}_{j}$, and $\phi(i, j)$ is a feature vector that encodes speaker and genre information from the metadata and the distance between a pair of span. The coreference score is computed through a two stage beam search as the model complexity is quartic in terms of the document length. In the first phase, a beam of up to $\lambda T$ candidate mention spans are considered based on the highest mention scores $s_{m}(i)$, where $\lambda$ is a hyperparameter and $T$ is the document length. Afterwards, only the filtered mentions are used to compute the joint score $s_{a}(i, j)$ during both training and inference, with the limitation that only up to $K$ candidate antecedents that are considered for each mention.
+% describe embeddings (glove, turian, etc) 
+% describe encoder
+% describe pruning for inference
+
+% however quite costly, transition to higher order.
+While the first order model proposed by \parencite{lee2017end} works quite well for coreference resolution, scoring only pairs of entity mentions means that other coreference links that might be more suitable are not taken into account when computing the pairwise coreference score. This drawback makes the model more susceptible to predicting clusters that are locally consistent but globally inconsistent. In an attempt to improve the weakness of this approach, \parencite{lee2018higher} proposed a model that captures higher order interactions between mention spans in coreference clusters. The model utilizes span-ranking architecture to refine existing span representations iteratively with the antecedent distribution as an attention mechanism. We will further refer to the model as \textit{c2f-coref} in the paper.
+
+%describe iterative 
+%use ELMO
+%describe coarse to fine approximation
 \section{Probing Mention-span Representations}
 % change section name to Probing Span Representations
 % include overview of SOTA-architecture with BERT, preferably before the Probing Span Representations section
@@ -203,7 +237,6 @@ We focus on coreference arc prediction task, which is a part of probing tasks su
 
 Our probing model is a simple feed-forward neural network, which is designed with a limited capacity to focus on what information that can be extracted from the span representations.
 As the input to our probing model, we take the span representation for pair of mention-spans $\pmb{g}_{1} = [\pmb{x}_{start(1)}^{*}, \pmb{x}_{end(1)}^{*}, \hat{\pmb{x}}_{1}, \phi_{1}]$ and $\pmb{g}_{2} = [\pmb{x}_{start(2)}^{*}, \pmb{x}_{end(2)}^{*}, \hat{\pmb{x}}_{2}, \phi_{2}]$, where both $\pmb{g}_{1}$ and $\pmb{g}_{2}$ are concatenated together and passed to the FFNN. The FFNN consists of a single hidden layer followed by a sigmoid output layer. The model is trained to minimize the binary cross-entropy with respect to the gold label $Y \in \{0,1\}$. The probing architecture is shown in Figure \ref{fig:probing_model}.
-\pagebreak
 %Draw figure ffnn with positive and and negative examples ala tenney
 
 % Explain using BERT-finetuned on OntoNotes and non-finetuned, base and large cased
@@ -268,7 +301,6 @@ where $i = (1,2)$, $A$ and $b$ are weights of the projection layer. The paramete
 %explain why the baseline is as it is
 We compare the span representation used in the span-ranking model against the baseline, as it measures the performance that the probing model can achieve from the representation that is constructed from lexical priors alone, without any access to the local context within the mention-span. The resulting span representation have a dimension of $d = 768$ for BERT-base and $d = 1024$ for BERT-large.
 
-\pagebreak %for better formatting
 \subsection{Long-range Coreference}
 %In order to answer our second research question is whether the span representations encoded with a pre-trained BERT model simply modelling local coreference and will it be able to encode non-local coreference dependencies. In order to answer it, we bucket the test data into separate groups based on the the length of the coreference distance between the a mention and antecedent. We do separate qualitative and quantitative analysis on the buckets in order to analyse the differences in performance of our models based on how large the distance is. 
 
@@ -349,7 +381,7 @@ To find out the importance of each component in BERT-coref span representations,
 \label{turns}
 \begin{tabular*}{\textwidth}{@{\extracolsep{\fill}} l *{4}{d{1.2}} }
 \toprule
- & \multicolumn{1}{c}{Accuracy} & \multicolumn{1}{c}{F1 Score} & \multicolumn{1}{c}{$\Delta \text{Accuracy}$ } & \multicolumn{1}{c}{$\Delta \text{F1 Score}$}\\
+ & \multicolumn{1}{c}{Accuracy} & \multicolumn{1}{c}{F1 Score} & \multicolumn{1}{c}{$\Delta \text{Accuracy} $} & \multicolumn{1}{c}{$\Delta \text{F1 Score}$}\\
 \midrule
 \midrule
 BERT-base c2f (cased, fine-tuned)     & 92.93 & 93.02 \\
@@ -417,7 +449,7 @@ Hence, the high results may be a phenomena particular to this language. For morp
 \begin{itemize}
 \item everything we don't have the time for
 \item mention other corpora that could be used for finetuning (Winogrande, GAP...)
-\item apply roberta, spanbert (sota)
+\item apply roberta, spanbert (sota result, architecture still use c2f)
 \item try building span representations from intermediate layers, use scalar mixing
 \item comparing attention head of Joshi's and baseline?
 
@@ -430,6 +462,7 @@ Hence, the high results may be a phenomena particular to this language. For morp
 \end{itemize}
 
  \todo{american/british english consistency} 
+ \todo{oxford comma?}
 
 \newpage % bibliography should start on new pages for nicer formatting, can delete this if space is not enough. keep it for now.
 \printbibliography

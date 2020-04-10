@@ -52,10 +52,13 @@ def get_error_count(input_filename):
                     if error_counter < 100:
                         sentences = [item for sublist in example['sentences'] for item in sublist]
                         print(example['mention_dist'][idx])
-                        before = max(0, example['men1_start'][idx] - 5)
+                        before = max(0, example['men1_start'][idx] - 7)
                         after = min(len(sentences)-1, example['men2_end'][idx])
-                        print(sentences[example['men1_start'][idx]:example['men1_end'][idx]+1], ' corefers with ', sentences[example['men2_start'][idx]:example['men2_end'][idx]+1])
-                        print(' in ', sentences[before:after], '\n' )
+                        print(" ".join(sentences[example['men1_start'][idx]:example['men1_end'][idx]+3]), '   ==   ', " ".join(sentences[example['men2_start'][idx]:example['men2_end'][idx]+1]))
+                        if example['mention_dist'][idx] < 20:
+                            print(' in ', " ".join(sentences[before:after]), '\n' )
+                        else:
+                            print('in', " ".join(sentences[before:example['men1_end'][idx]+5]), '...', " ".join(sentences[example['men2_start'][idx]-5:example['men2_end'][idx]+5]), '\n' )
 
 
 

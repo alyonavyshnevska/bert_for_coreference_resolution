@@ -159,37 +159,71 @@ The authors use probing models, also known as auxiliary or diagnostic classifier
 The first coreference resolution model that is trained in an end-to-end manner without relying on any syntactic parser or hand-engineered mention detector is introduced by \parencite{lee2017end}. To construct correct coreference clusters, the neural model learn to jointly model mention detection and coreference prediction using span-ranking approach.  With span-ranking approach, the model is able to consider all spans in a document up to a defined maximum length as a candidate mention and select the corresponding antecedent for each mention based on the antecedent distribution. We will further refer to the model as \textit{e2e-coref} in the paper.
 
 The span-ranking architecture estimates the joint probability distribution of mention-spans that belong to the same cluster given the document, by calculating product of multinomials for each span:
-\begin{align*}
+\begin{align}
 P(y_{1}, ..., y_{n}|D) &= \prod\limits_{i=1}^{N} P(y_{i}|D) \\
 &= \prod\limits_{i=1}^{N} \frac{\text{exp}(s(i, y_{i}))}{\sum_{y' \in \mathcal{Y}(i)} \text{exp}(s(i, y'))}
-\end{align*}
+\end{align}
 
-where $s(i,j)$ is a pairwise score for a coreference link between span $i$ and span $j$ in document $D$. The coreference score is composed three factors: (1) $s_{m}(i)$, mention score of $i$ (i.e. how possible is the span $i$ to be a mention), (2) $s_{m}(j)$, mention score of $j$ and (3) $s_{a}(i,j)$, joint score of $i$ and $j$ (i.e. assuming that $i$ and $j$ are both mentions, how possible that they both refer to the same entity), formulated as the following:
-\begin{align*}
+where $s(i,j)$ is a pairwise score for a coreference link between span $i$ and span $j$ in document $D$. The coreference score is composed of three factors: (1) $s_{m}(i)$, mention score of $i$ (i.e. how possible is the span $i$ to be a mention), (2) $s_{m}(j)$, mention score of $j$ and (3) $s_{a}(i,j)$, joint score of $i$ and $j$ (i.e. assuming that $i$ and $j$ are both mentions, how possible that they both refer to the same entity), formulated as the following:
+\begin{align}
 s(i, j) = \begin{cases}
 s_{m}(i) + s_{m}(j) + s_{a}(i, j) & j \neq \epsilon \\
 0 & j = \epsilon
 \end{cases}
-\end{align*} 
+\end{align} 
 
 where $\epsilon$ is a dummy antecedent to represent that the span is not a mention or the case where it is a mention that coreferent with none of the previous mention span.
 
 In this model, a bidirectional LSTM \parencite{lstm} is used to compute vector representations $\pmb{g}_{i}$ of each possible span $i$ from the word and character embeddings in the span. The word embeddings itself are a fixed concatenation of GloVe \parencite{pennington2014glove} and Turian embeddings \parencite{turian-etal-2010-word}. The character embeddings are learned using CNN, with three various window sizes. It also provide morphological information and allows the model to deal with rare words. The span representation $\pmb{g}_{i}$, which we will describe in detail in the following section, is then used to compute $s_{m}(i)$ and $s_{a}(i, j)$ via feed-forward neural networks as follows:
-\begin{align*}
+\begin{align}
 s_{m}(i) &= \pmb{w}_{m} \cdot \text{FFNN}_{m}(\pmb{g}_{i}) \\
 s_{a}(i, j) &= \pmb{w}_{a} \cdot \text{FFNN}_{a}([\pmb{g}_{i}, \pmb{g}_{j}, \pmb{g}_{i} \odot \pmb{g}_{j}, \phi(i, j)])
-\end{align*}
+\end{align}
 
-where $\odot$ denotes the Hadamard product between $\pmb{g}_{i}$ and $\pmb{g}_{j}$, and $\phi(i, j)$ is a feature vector that encodes speaker and genre information from the metadata and the distance between a pair of span. The coreference score is computed through a two stage beam search as the model complexity is quartic in terms of the document length. In the first phase, a beam of up to $\lambda T$ candidate mention spans are considered based on the highest mention scores $s_{m}(i)$, where $\lambda$ is a hyperparameter and $T$ is the document length. Afterwards, only the filtered mentions are used to compute the joint score $s_{a}(i, j)$ during both training and inference, with the limitation that only up to $K$ candidate antecedents that are considered for each mention.
+where $\odot$ denotes the Hadamard product between $\pmb{g}_{i}$ and $\pmb{g}_{j}$, and $\phi(i, j)$ is a feature vector that encodes speaker and genre information from the metadata and the distance between a pair of span. The final coreference score is computed through a two-stage beam search as the model complexity is quartic in terms of the document length. In the first phase, a beam of up to $\lambda T$ candidate mention spans are considered based on the highest mention scores $s_{m}(i)$, where $\lambda$ is a hyperparameter and $T$ is the document length. Afterwards, only the filtered mentions are used to compute the joint score $s_{a}(i, j)$ during both training and inference, with the limitation that only up to $K$ candidate antecedents that are considered for each mention.
 % describe embeddings (glove, turian, etc) 
 % describe encoder
 % describe pruning for inference
+% in case of emergency, insert figure.
 
 % however quite costly, transition to higher order.
-While the first order model proposed by \parencite{lee2017end} works quite well for coreference resolution, scoring only pairs of entity mentions means that other coreference links that might be more suitable are not taken into account when computing the pairwise coreference score. This drawback makes the model more susceptible to predicting clusters that are locally consistent but globally inconsistent. In an attempt to improve the weakness of this approach, \parencite{lee2018higher} proposed a model that captures higher order interactions between mention spans in coreference clusters. The model utilizes span-ranking architecture to refine existing span representations iteratively with the antecedent distribution as an attention mechanism. We will further refer to the model as \textit{c2f-coref} in the paper.
+While the first order model proposed by \parencite{lee2017end} works quite well for coreference resolution, scoring only pairs of entity mentions means that previous coreference decisions are not taken into account when computing coreference decisions that occur afterwards. This drawback makes the model more susceptible to predicting clusters that are locally consistent but globally inconsistent. In an attempt to improve the weakness of this approach, \parencite{lee2018higher} proposed a model that captures higher-order interactions between mention spans in predicted coreference clusters. The model utilizes span-ranking architecture to refine existing span representations iteratively with the antecedent distribution as an attention mechanism. We will further refer to the model as \textit{c2f-coref} in the paper.
 
-%describe iterative 
-%use ELMO
+In order to refine the span representations, the higher-order model estimates the antecedent distributions $P_{n}(y_{i})$, which is obtained using the softmax function:
+\begin{align}
+P_{n}(y_{i}) = \frac{\text{exp}(s(\pmb{g}_{i}^{n}, \pmb{g}_{y_{i}}^{n}))}{\sum_{y \in \mathcal{Y}(i)} \text{exp}(s(\pmb{g}_{i}^{n}, \pmb{g}_{y}^{n}))}
+\end{align}
+
+where $s$ is the scoring function from \parencite{lee2017end}, $\pmb{g}_{i}^{n}$ is the representation for span $i$ at iteration $n$. The refined span representations also allow the model to iteratively refine $P_{n}(y_{i})$. Afterwards, the expectation of each span $i$ are computed by using the current antecedent distribution as the attention weight:
+\begin{align}
+\pmb{a}_{i}^{n} = \sum\limits_{y_{i} \in \mathcal{Y}(i)} P_{n}(y_{i}) \cdot \pmb{g}_{y_{i}}^{n}
+\end{align}
+
+where $\pmb{a}_{i}^{n}$ can be viewed as the expected antecedent representation. The span representation $\pmb{g}_{i}^{n}$ is updated with the expected antecedent representation $\pmb{a}_{i}^{n}$ using coupled forget and input gates formulated as the following:
+\begin{align}
+\pmb{f}_{i}^{n} &= \sigma(\textbf{W}_{f}[\pmb{g}_{i}^{n}, \pmb{a}_{i}^{n}]) \\
+\pmb{g}_{i}^{n+1} &= \pmb{f}_{i}^{n} \odot \pmb{g}_{i}^{n} + (\mathbf{1} - \pmb{f}_{i}^{n}) \odot \pmb{a}_{i}^{n}
+\end{align}
+
+where $\pmb{f}_{i}^{n} \in [0,1]$ is a gate vector that controls whether to retain the information from the current span representation or to update the span representation with the expected antecedent. Altogether, this mechanism allows the model to compute the final antecedent distribution conditioned on up to $n$ other mention spans. 
+
+To alleviate the additional computational cost of higher-order inference, \parencite{lee2018higher} also proposed a coarse-to-fine beam search, which does not establish an a priori maximum coreference distance. In order to prune potential mentions aggresively, the coreference score is reformulated as the following:
+\begin{align}
+s_{c}(i, j) &= \pmb{g}_{i}^{\top}\textbf{W}_{c}\, \pmb{g}_{j}\\
+s(i, j) &= \begin{cases}
+s_{m}(i) + s_{m}(j) + s_{a}(i, j) + s_{c}(i, j) & j \neq \epsilon \\
+0 & j = \epsilon
+\end{cases}
+\end{align}
+
+where $s_{c}(i, j)$ a bilinear scoring function to compute a rough sketch of possible antecedents. To obtain the coreference score, the model executes a three-stage beam search. At the first stage, a beam of up to $M$ candidate mention spans are considered based on the mention score $s_{m}(i)$. Afterwards,  approximation of pairwise coreference score is computed based on $s_{m}(i) + s_{m}(j) + s_{c}(i, j)$ to keep top $K$ candidate antecedents for each remaining mention spans. In the last phase, the final coreference score $s(i, j)$ is computed based on the surviving pairs of mention spans.
+% describe latent antecedent trees in case of emergency
+
+Recently, BERT \parencite{devlin2019bert} has achieved state-of-the-art results on a wide array of NLP tasks, such as question answering and natural language inference, without any substantial task-specific architecture modifications. \parencite{joshi2019coref} proposed to replace the bidirectional LSTM encoder in \textit{c2f-coref} with BERT transformers and fine-tune it on coreference resolution task. Although BERT improves the state-of-the-art results in other tasks significantly, coreference resolution still proves to be a challenging task, as BERT encoder offers only a marginal performance increase. Furthermore, the model still struggles in modeling pronouns and resolving cases where mention paraphrasing is required. We refer the model by \parencite{joshi2019coref} as \textit{BERT-coref}.
+
+
+%describe iterative, enables later coreference decisions to softly condition on earlier coreference decisions.
+%useELMO
 %describe coarse to fine approximation
 \section{Probing Mention-span Representations}
 % change section name to Probing Span Representations
@@ -204,16 +238,16 @@ While the first order model proposed by \parencite{lee2017end} works quite well 
 \label{subsection:spanreps}
 
 Span representation plays an important role in span-ranking model \parencite{lee2017end}, since it is used to compute distribution over candidate antecedent spans. In order to be able to predict coreference relations accurately, span representation should also capture the information of the span's internal structure and its surrounding context. In our experiments, we use the span representation which is first proposed in \parencite{lee2017end}, but with BERT \parencite{devlin2019bert} instead of a LSTM-based encoder to encode lexical information of the span and its surrounding, following \parencite{joshi2019coref}. The span representation is a vector embeddings which consists of context-dependent boundary representations with attentional representation of the head words over the span. The boundary representations are composed of first and last word-pieces of the span itself. The head words are automatically learned using additive attention \parencite{bahdanau} over each word-pieces in the span:
-\begin{align*}
+\begin{align}
 \alpha_{t} &= \pmb{w}_{\alpha} \cdot \text{FFNN}_{\alpha}(\pmb{x}_{t}^{*}) \\ 
 a_{i,t} &=  \frac{exp(\alpha_{t})}{\sum\limits_{k=start(i)}^{end(i)} exp(\alpha_{k})} \\ 
 \hat{\pmb{x}}_{i} &= \sum\limits_{t=start(i)}^{end(i)} a_{i,t} \cdot \pmb{x}_{t}
-\end{align*}
+\end{align}
 
 where $\hat{\pmb{x}}_{i}$ is a weighted vector representation of word-pieces for span $i$. This representation is augmented by a $\mathbb{R}^{d}$ feature vector which encodes the size of span $i$ with $d = 20$. The final representation $\pmb{g}_{i}$ for span $i$ is formulated as the following:
-\begin{align*}
+\begin{align}
 \pmb{g}_{i} = [\pmb{x}_{start(i)}^{*}, \pmb{x}_{end(i)}^{*}, \hat{\pmb{x}}_{i}, \phi_{i}]
-\end{align*}  
+\end{align}  
 
 where $\pmb{x}_{start(i)}^{*}$ and $\pmb{x}_{end(i)}^{*}$ are first and last word-pieces of the span, and $\phi_{i}$ is the span width embeddings.
 
@@ -286,9 +320,9 @@ As mentioned previously, we use both original pre-trained BERT model without fin
 % Describe span representation for baseline too! and padding part
 
 As our baseline, we use span representations introduced in the edge probing framework \parencite{tenney2019context}. First of all, we take concatenated contextual embeddings for pair of mention-span $e^{(1)} = [x_{1}^{(1)}, x_{2}^{(1)}, x_{3}^{(1)}, ..., x_{n}^{(1)}]$ and $e^{(2)} = [x_{1}^{(2)}, x_{2}^{(2)}, x_{3}^{(2)}, ..., x_{n}^{(2)}]$ as inputs. We then project the concatenated contextual embeddings $e^{(1)}$ and $e^{(2)}$ to improve performance:
-\begin{align*}
+\begin{align}
 e^{(i)} = Ae^{(i)} + b
-\end{align*}
+\end{align}
 
 where $i = (1,2)$, $A$ and $b$ are weights of the projection layer. The parameters in the projection layer are shared between representations $e^{(1)}$ and $e^{(2)}$. Afterwards, we apply self-attentional pooling operator in (\S \ref{subsection:spanreps}) over the projected representations to yield a fixed-length span representations. This also helps to model head words for each mention-span. These mention-span representations are then concatenated together and passed to the probing model to predict whether they corefer or not. It is important to note that the self-attention pooling is computed only using tokens within the boundary of the span. As a result, the model can only access information about the context surrounding the mention span through the contextual embeddings. We take the contextual embeddings from activations of non-finetuned BERT final layer, while freezing the encoder. The baseline probing architecture is depicted in Figure \ref{fig:baseline}. 
 
@@ -418,15 +452,41 @@ Our aim is to present qualitative error analysis for predicted coreference betwe
 % I'll 100 and see how long it takes: maybe take 200 or even all if this is feasible. 
 We conducted our error analysis on 4 models: BERT-base c2f (cased, fine-tuned), BERT-large c2f (cased, fine-tuned), BERT-base (cased, original) baseline, and BERT-large (cased, original) baseline. We used a subsample of 100 coreference clusters from the Ontonotes test dataset. We divide errors into the following categories: \textit{Related Entities, Lexical, Pronouns, Gender, Mention Paraphrasing, Conversation,} and \textit{Misc}. Although \textit{Gender} can be considered a subcategory of \textit{Pronouns}, the decision to separate it is motivated by the curiosity to find out whether gender bias is present in the models. 
 
+In the table: bold are false positives, cursive are false negatives.
+
 Our hypothesis is that mentions that are separated by a large distance will have a higher error rate in all categories. 
 
 The most difficult for all models is ... \todo{add this}. There is a tendency for all systems to ... \todo{add this}. The least problematic category for all models is... 
 
 % subsections for error categories
+\subsection{Anaphora Resolution}
 
+Pronouns coreference spanning over 100 tokens is intrinsically difficult, even for a human. The model predicts pronouns relating to a mention 200 tokens in distance. 
 
+Agreement is good even when predicting oven 200 words. - Them == her colleagues guesses correctly
 
+\subsection{Distinct Entities} Model merges distinct entities into one cluster 
 
+\subsection{Mention Paraphrasing} Error in failing to label two mentions as referring to the same entity on one hand and labelling two distinct mentions as coreferent on the other hand.
+
+Goods and Intellectual property Rights are deemed coreferent by joshi base: legally speaking different things. Might occur in similar laws.
+
+Jesus and Young Man. Part of the dialog between Jesus and a young man.
+
+\subsection{Morphologically Related} 
+The word forms of the two mentions are similar, or the same graphems appear in both mentions, but they refer to different entities.
+
+\subsection{Gender}
+Usually in conext of a gender pronoun relating to a name of a person.
+no problems with common names. Troeble with Scooter Libby as she.
+
+\subsection{Temporal and Spacial Agreement}
+Mention paraphrasing with reference to a specific date (e.g. January 3 and yesterday) and a specific spacial areas (two Chinese provinces).
+
+1996 and 1997 are labeled as coreferent by joshi's base model. Or this year and 1994. This is a mistake that a human will likely not do.
+
+\subsection{Miscellaneous}
+Majority of mentions here involve a large Noun Phrase that is falsely identified as coreferent with a verb or a noun. Or anything else that didn't generalise onto other examples. 
 
 The most difficult for 
 

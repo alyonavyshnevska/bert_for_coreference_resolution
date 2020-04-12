@@ -21,6 +21,7 @@
 \renewcommand{\ast}{{}^{\textstyle *}} % for raised "asterisks"
 \graphicspath{ {./figures/} }
 \usepackage{wrapfig}
+\usepackage{booktabs}
 \addbibresource{references.bib}
 
 
@@ -47,6 +48,8 @@
 
 
 \section{Introduction}
+
+% Main contribution: Dissect Span representation using probing model, show what is useful, in particular w.r.t the effect of fine-tuning 
 
 % Role of Coreference Resolution in NLP . 
 %Some nice long paragraphs about place of coreference in NLP  
@@ -87,12 +90,32 @@ Our code is publicly available on GitHub.  \footnote{\url{https://github.com/aly
 \subsection{Approaches to Coreference Resolution}
 % Explain several types of approaches for coreference resolution with each difference, later link that we choose span-ranking models.
 % find something about span representation?
-Architectures for coreference resolution models are typically categorized as 1) mention-pair classifiers \parencite{ng2002identifying, bengtson2008understanding}, 2) mention-ranking classifiers \parencite{durrett2013easy, wiseman2015learning, clark2016deep}, 3) entity-level models \parencite{haghighi-klein-2010-coreference, wiseman-etal-2016-learning}, or 4) latent-tree models \parencite{fernandes-etal-2012-latent, martschat-strube-2015-latent}.
-Earlier solutions have been feature-based, while in the recent years neural classifiers have been particularly successful.
 
-Nowadays a widely-adopted approach to coreference resolution are end-to-end models that perform mention detection, anaphoricity, and coreference jointly \parencite{jurafsky2019}. Beforehand, the rule-based systems were in use. Notable mentions are work by \textcite{hobbs1978}, \textcite{lappin1994}. \textcite{hobbs1978} invented a tree-search algorithm for identifying reference with robust results, which started a long series of syntax-based methods.  \textcite{lappin1994} combined syntactic and other features by assigning weights to those features and summing these up to score candidate mentions. \textcite{kennedy1996} optimised the approach to avoid full syntactic parsing. 
+%Architectures for coreference resolution models are typically categorized as 1) mention-pair classifiers \parencite{ng2002identifying, bengtson2008understanding}, 2) mention-ranking classifiers \parencite{durrett2013easy, wiseman2015learning, clark2016deep}, 3) entity-level models \parencite{haghighi-klein-2010-coreference, wiseman-etal-2016-learning}, or 4) latent-tree models \parencite{fernandes-etal-2012-latent, martschat-strube-2015-latent}.
+%Earlier solutions have been feature-based, while in the recent years neural classifiers have been particularly successful.
 
-\textcite{yang2003coref} and \textcite{iida2003incorporating} helped establish mention-ranking approaches as influential solutions in the early 2000's. \textcite{ng2005b} pioneered the rise of end-to-end solutions. While rule-based systems have witnessed a short-lived revival in 2010s \parencite{zhou2004, haghighi2009}, their struggles with semantic understanding for the models led to their eventual demise.  The rise of neural architectures that dominated the NLP in the recent decade has inevitably established itself in coreference. 
+% we are interested in span-ranking models, why? because it is sota model
+% most earlier system ...transition to machine learning... type of approaches (describe!)..describe first approach to jointly model...describe neural based...
+% describe coreference resolution algorithm that uses deep learning
+
+%Nowadays a widely-adopted approach to coreference resolution are end-to-end models that perform mention detection, anaphoricity, and coreference jointly \parencite{jurafsky2019}. Beforehand, the rule-based systems were in use. Notable mentions are work by \textcite{hobbs1978}, \textcite{lappin1994}. \textcite{hobbs1978} invented a tree-search algorithm for identifying reference with robust results, which started a long series of syntax-based methods.  \textcite{lappin1994} combined syntactic and other features by assigning weights to those features and summing these up to score candidate mentions. \textcite{kennedy1996} optimised the approach to avoid full syntactic parsing. 
+
+%\textcite{yang2003coref} and \textcite{iida2003incorporating} helped establish mention-ranking approaches as influential solutions in the early 2000's. \textcite{ng2005b} pioneered the rise of end-to-end solutions. While rule-based systems have witnessed a short-lived revival in 2010s \parencite{zhou2004, haghighi2009}, their struggles with semantic understanding for the models led to their eventual demise.  The rise of neural architectures that dominated the NLP in the recent decade has inevitably established itself in coreference. 
+
+Most of the earlier systems to solve coreference resolution are rule-based. \parencite{hobbs1978} proposed a naïve tree-search algorithm for identifying antecedent with world knowledge based constraints to prune the antecedent search space, which started a long-series of syntax-based methods. \parencite{lappin1994} introduced an algorithm that maintain a discourse model consisting of potential antecedent references, where each antecedent was assigned a salience value based on several features. All the salience value are then summed to score and predict the most appropriate antecedent. Furthermore, \parencite{kennedy1996} extended the approach to avoid full syntactic parsing by using part-of-speech tagger, augmented with annotations of grammatical functions.
+
+However, the field of coreference resolution underwent a shift since the first machine learning-based approach for coreference resolution was published \parencite{ConnollyEtAl:94}. While rule-based systems have witnessed a short-lived revival in 2010s \parencite{zhou2004, haghighi2009}, their struggles with semantic understanding for the models led to their eventual demise. Architectures for machine learning-based coreference resolution models can be categorized as (1) mention-pair classifiers \parencite{ng2002identifying,bengtson2008understanding}, (2) mention-ranking models \parencite{durrett2013easy,wiseman2015learning,clark2016deep,denis-baldridge-2008-specialized}, (3) entity-level models \parencite{haghighi-klein-2010-coreference,wiseman-etal-2016-learning,clark-manning-2015-entity,clark-manning-2016-improving}, (4) latent-tree models \parencite{fernandes-etal-2012-latent,martschat-strube-2015-latent,bjorkelund-kuhn-2014-learning}, and (5) span-ranking models \parencite{lee2017end,lee2018higher,joshi2019coref}.
+%describe each approach in case of emergency
+
+% first neural approach to CR. Although Daume III already proposed joint modelling, Lee2017 CR. zhang 2018 variant, clark REINFORCE, wiseman 2016 (?)
+% anything span representation related? luo and glass 2018, subramanian and roth 2019 -> relate to why we choose to explore span representations
+
+While earlier machine learning based-approach depends on hand-crafted features, in the recent years neural-based architectures have been particularly successful in coreference resolution and NLP in general, enabled by word embeddings and contextual word representations. The first neural approach in coreference resolution is introduced by \parencite{wiseman2015learning}, where they extend mention-ranking model with a feed-forward neural network that can be viewed as piecewise scoring function to determine whether a mention is anaphoric or not. \parencite{lee2017end} proposed an end-to-end coreference resolution model that consider all spans of text and learn how to identify mentions and cluster them together using a pairwise scoring function. \parencite{clark2016deep} proposed a novel approach to use reinforcement learning for coreference resolution. Using reward-rescaled max-margin objective and REINFORCE policy gradient algorithm \parencite{reinforce}, they exploit the independent coreference decision in mention-ranking model to directly optimize for coreference evaluation metrics. Neural coreference resolution approach also typically require different levels of semantic representations of input sentences, which is usually done by computing representations at span level given the word embeddings. We focus on these span representation and examine their capability in encoding necessary information to make coreference decisions. 
+
+%neural model -> representation learning -> make use of mention span to improve performance.
+% span representations!!!
+% difference in model lead to different span representations as objective is different
+%Although there are many variant of span representations such as ..., we choose to explore lee
 
 
 %\subsection{State of the Art Coreference Models}
@@ -141,10 +164,15 @@ Nowadays a widely-adopted approach to coreference resolution are end-to-end mode
 %A qualitative analysis done by the authors suggests that BERT-large (unlike BERT-base) is significantly better at distinguishing between related yet distinct entities or concepts.
 
 
-\subsection{Coreference Arc Prediction Task}
+\subsection{Probing Model}
 % \textcite{liu2019linguistic}  Ling Knowledge and Transfer, Negative Samples, arc prediction task
 
 % explain probing model in general, we are interested in particular in coref arc prediction
+% describe work that has tried to probe coreference information in BERT
+% clark et al show that given a coreferent mention BERT can predict a correct antecedent
+% kantor and globerson, frozen bert
+% xu and yang, GCN to capture syntax embeddings
+
 
 Recently, there has been interesting work done to simplify state-of-the-art task-specific NLP models. 
  \textcite{liu2019linguistic} show evidence that frozen contextual represenations of word sequences fed into linear models can show similar levels of performance as state-of-the-art task-specific models on many NLP tasks.
@@ -153,6 +181,8 @@ The authors use probing models, also known as auxiliary or diagnostic classifier
 %\textcite{tenney2019context} Probing Model
 \textcite{tenney2019context} introduced edge probing task design. For coreference resolution, the models had to determining whether two spans of tokens refer to the same entity. In order to investigate how good the contextual word representation models can model long-range dependencies, the authors used a fixed-width convolutional layer on top of the word representations to build spans of word pieces. The authors concluded that using the CNN layers on top of BERT-large pretarined model has performed particularly well on difficult semantic tasks, such as coreference resolution. Hence, in out work we will also follow the approach of the authors to construct our baseline. 
 % and found that existing models trained on language modeling and translation produce strong representations for syntactic phenomena, but only offer comparably small improvements on semantic tasks over a non-contextual baseline. 
+
+%tenney use span representation, but how will it perform using Lee's ?
 
 \section{Overview of Span-Ranking Architecture}
 % Move Lee 2017, Lee 2018, Joshi 2019 here, with a more in-depth explanation, separate it from Related Work
@@ -225,7 +255,7 @@ Recently, BERT \parencite{devlin2019bert} has achieved state-of-the-art results 
 %describe iterative, enables later coreference decisions to softly condition on earlier coreference decisions.
 %useELMO
 %describe coarse to fine approximation
-\section{Probing Mention-span Representations}
+\section{Probing Mention-Span Representations}
 % change section name to Probing Span Representations
 % include overview of SOTA-architecture with BERT, preferably before the Probing Span Representations section
 % Explain about Span Representations/Embeddings, especially regarding the features, define the span representations in SOTA
@@ -237,7 +267,7 @@ Recently, BERT \parencite{devlin2019bert} has achieved state-of-the-art results 
 \subsection{Span Representation}
 \label{subsection:spanreps}
 
-Span representation plays an important role in span-ranking model \parencite{lee2017end}, since it is used to compute distribution over candidate antecedent spans. In order to be able to predict coreference relations accurately, span representation should also capture the information of the span's internal structure and its surrounding context. In our experiments, we use the span representation which is first proposed in \parencite{lee2017end}, but with BERT \parencite{devlin2019bert} instead of a LSTM-based encoder to encode lexical information of the span and its surrounding, following \parencite{joshi2019coref}. The span representation is a vector embeddings which consists of context-dependent boundary representations with attentional representation of the head words over the span. The boundary representations are composed of first and last word-pieces of the span itself. The head words are automatically learned using additive attention \parencite{bahdanau} over each word-pieces in the span:
+Span representation plays an important role in span-ranking model \parencite{lee2017end,lee2018higher}, since it is used to compute distribution over candidate antecedent spans. In order to be able to predict coreference relations accurately, span representation should also capture the information of the span's internal structure and its surrounding context. In our experiments, we use the span representation which is first proposed in \parencite{lee2017end}, but with BERT \parencite{devlin2019bert} instead of a LSTM-based encoder to encode lexical information of the span and its surrounding, following \parencite{joshi2019coref}. The span representation is a vector embeddings which consists of context-dependent boundary representations with attentional representation of the head words over the span. The boundary representations are composed of first and last word-pieces of the span itself. The head words are automatically learned using additive attention \parencite{bahdanau} over each word-pieces in the span:
 \begin{align}
 \alpha_{t} &= \pmb{w}_{\alpha} \cdot \text{FFNN}_{\alpha}(\pmb{x}_{t}^{*}) \\ 
 a_{i,t} &=  \frac{exp(\alpha_{t})}{\sum\limits_{k=start(i)}^{end(i)} exp(\alpha_{k})} \\ 
@@ -415,7 +445,7 @@ To find out the importance of each component in BERT-coref span representations,
 \label{turns}
 \begin{tabular*}{\textwidth}{@{\extracolsep{\fill}} l *{4}{d{1.2}} }
 \toprule
- & \multicolumn{1}{c}{Accuracy} & \multicolumn{1}{c}{F1 Score} & \multicolumn{1}{c}{$\Delta \text{Accuracy} $} & \multicolumn{1}{c}{$\Delta \text{F1 Score}$}\\
+ & \multicolumn{1}{c}{Accuracy} & \multicolumn{1}{c}{F1 Score} & \multicolumn{1}{c}{$\Delta \text{Accuracy}$ } & \multicolumn{1}{c}{$\Delta \text{F1 Score}$}\\
 \midrule
 \midrule
 BERT-base c2f (cased, fine-tuned)     & 92.93 & 93.02 \\
@@ -449,8 +479,24 @@ We compare how our probing model performs with various span separation distance 
 
 Our aim is to present qualitative error analysis for predicted coreference between mention-pairs. We identify and characterize a set of challenging errors common to state-of-the-art systems dealing with coreference resolution in English. Such quialitative analysis enables us to detect patterns in errors that our system produces and to discuss underlying reasons for such errors. As true positives we treat the pair of one mention and another mention belonging to the same coreference chain which matches the corresponding mention in the gold standard. 
 
-% I'll 100 and see how long it takes: maybe take 200 or even all if this is feasible. 
 We conducted our error analysis on 4 models: BERT-base c2f (cased, fine-tuned), BERT-large c2f (cased, fine-tuned), BERT-base (cased, original) baseline, and BERT-large (cased, original) baseline. We used a subsample of 100 coreference clusters from the Ontonotes test dataset. We divide errors into the following categories: \textit{Related Entities, Lexical, Pronouns, Gender, Mention Paraphrasing, Conversation,} and \textit{Misc}. Although \textit{Gender} can be considered a subcategory of \textit{Pronouns}, the decision to separate it is motivated by the curiosity to find out whether gender bias is present in the models. 
+
+% joshi 0-25 error analysis
+\begin{table}[]
+\begin{tabular}{|l|l|l|l|}
+\hline
+Category & Snippets & base c2f & large c2f \\ \hline
+\begin{tabular}[c]{@{}l@{}}Similar \\ Word Forms\end{tabular} & \begin{tabular}[c]{@{}l@{}}... in some of the questioning eh of Miller, I think ... \\ you have Judy Miller there ( 13 )\end{tabular} & 3 & 0 \\ \hline
+Anaphora & \begin{tabular}[c]{@{}l@{}}... we should say it was very prompt with traffic management \\ and emergency repair, ah, because it involved various ( 5 )\end{tabular} & 8 & 4 \\ \hline
+Gender & none & 0 & 0 \\ \hline
+\begin{tabular}[c]{@{}l@{}}Mention \\ Paraphrasing\end{tabular} & \begin{tabular}[c]{@{}l@{}}When someone sews a patch over a hole in an old coat,\\  they ... If they do, the patch will shrink ( 22 )\end{tabular} & 1 & 1 \\ \hline
+\begin{tabular}[c]{@{}l@{}}Temporal \\ and Spacial\end{tabular} & \begin{tabular}[c]{@{}l@{}}... people from economic circles, who even predicted that \\ in 1998 ... They pointed out that, this year, except ... ( 13 )\end{tabular} & 1 & 2 \\ \hline
+Misc. & \begin{tabular}[c]{@{}l@{}}... I want to turn now to uh President Bush ' s uh meeting ... \\  whether it was staged how shocking ( 4 )\end{tabular} & 1 & 1 \\ \hline
+\textit{Total} &  & 14 & 8 \\ \hline
+\end{tabular}
+\caption{Insert later: bold false positives, cursive false negatives}
+\label{tab:qualitative-0-25}
+\end{table}
 
 In the table: bold are false positives, cursive are false negatives.
 
@@ -464,6 +510,7 @@ The most difficult for all models is ... \todo{add this}. There is a tendency fo
 Pronouns coreference spanning over 100 tokens is intrinsically difficult, even for a human. The model predicts pronouns relating to a mention 200 tokens in distance. 
 
 Agreement is good even when predicting oven 200 words. - Them == her colleagues guesses correctly
+
 
 \subsection{Distinct Entities} Model merges distinct entities into one cluster 
 
@@ -485,6 +532,23 @@ Mention paraphrasing with reference to a specific date (e.g. January 3 and yeste
 
 1996 and 1997 are labeled as coreferent by joshi's base model. Or this year and 1994. This is a mistake that a human will likely not do.
 
+% 26-100
+\begin{table}[ht]
+\begin{tabular}{|l|l|l|l|}
+\hline
+Category & Snippets &  & joshi large \\ \hline
+\begin{tabular}[c]{@{}l@{}}Similar\\ Word Forms\end{tabular} & \begin{tabular}[c]{@{}l@{}}... the big news for me was Miller recounting what ...\\  Tate by the way tells the Times that that account is false ( 76 )\end{tabular} & 3 & 4 \\ \hline
+Anaphora & \begin{tabular}[c]{@{}l@{}}Actually, this morning, some listeners, ah ... \\ are many office buildings, ah, a lot of them ... ( 44 )\end{tabular} & 15 & 14 \\ \hline
+Gender & \begin{tabular}[c]{@{}l@{}}... killed a piece written by a reporter about Scooter Libby ... \\ They didn' t say that you know until she walked out ( 158 )\end{tabular} &  & 1 \\ \hline
+\begin{tabular}[c]{@{}l@{}}Mention \\ Paraphrasing\end{tabular} & \begin{tabular}[c]{@{}l@{}}... when importing and exporting goods ... \\ The owners of intellectual property rights who ... ( 77 )\end{tabular} & 8 & 4 \\ \hline
+\begin{tabular}[c]{@{}l@{}}Temporal \\ and Spacial\end{tabular} & \begin{tabular}[c]{@{}l@{}}... the Huang-Huai area through southern North China ... \\ there will also be less snow in Northwest China ( 80 )\end{tabular} & 2 & 2 \\ \hline
+Misc. & \begin{tabular}[c]{@{}l@{}}... President Clinton wanted to receive money for his library. \\ The library ( 1 )\end{tabular} &  & 1 \\ \hline
+\textit{Total} &  & 28 & 26 \\ \hline
+\end{tabular}
+\caption{Add later}
+\label{tab:qualitative-26-100}
+\end{table}
+
 \subsection{Miscellaneous}
 Majority of mentions here involve a large Noun Phrase that is falsely identified as coreferent with a verb or a noun. Or anything else that didn't generalise onto other examples. 
 
@@ -503,6 +567,22 @@ The most difficult for
 The results we introduced in this paper has been tested solely on an English corpus.
 Hence, the high results may be a phenomena particular to this language. For morphologically or syntactically complex languages the models would have struggled more. A benefit of using neural models for coreference resolution is their ability to use contextualized word embeddings to capture similarity between words, a property that many traditional feature-based models lack. However, a similar analysis should be done for other languages before one can generalize that machine-learning based models outperform rule-based models universally. % maybe it's more relevant in the conclusion A: I rewrote it. what about now?
 
+% over 100
+\begin{table}[]
+\begin{tabular}{|l|l|l|l|}
+\hline
+Category & Snippets & base c2f & large c2f \\ \hline
+\begin{tabular}[c]{@{}l@{}}Similar\\ Word Forms\end{tabular} & \begin{tabular}[c]{@{}l@{}}... they contacted Clinton' s office back in ... \\ the first time that the Clinton forces learned about ... ( 370 )\end{tabular} & 11 & 8 \\ \hline
+Anaphora & \begin{tabular}[c]{@{}l@{}}... took so long is that not only was she negotiating ... \\ And on that point Arianna on that ... ( 180 )\end{tabular} & 22 & 21 \\ \hline
+Gender & \begin{tabular}[c]{@{}l@{}}... not accept the waiver of confidentiality that Scooter Libby \\ offered ... her notes while they were defending her ( 1141 )\end{tabular} &  & 1 \\ \hline
+\begin{tabular}[c]{@{}l@{}}Mention \\ Paraphrasing\end{tabular} & \begin{tabular}[c]{@{}l@{}}... but first Judy Miller and the New York Times finally ... \\ in covering the controversy the editors killed ... ( 226 )\end{tabular} & 11 & 14 \\ \hline
+\begin{tabular}[c]{@{}l@{}}Temporal \\ and Spacial\end{tabular} & \begin{tabular}[c]{@{}l@{}}... and only 582 million US dollars last year ... \\ momentum can not be restrained, this year ... ( 379 )\end{tabular} & 6 & 5 \\ \hline
+Misc. & \begin{tabular}[c]{@{}l@{}}... President Bush' s uh meeting uh uh photo ... \\ would think that you would do something like ( 261 )\end{tabular} & 1 & 1 \\ \hline
+\textit{Total} &  & 51 & 50 \\ \hline
+\end{tabular}
+\caption{Add later}
+\label{tab:qualitative-over-100}
+\end{table}
 
 
 \subsection{Future Work}
@@ -522,7 +602,7 @@ Hence, the high results may be a phenomena particular to this language. For morp
 \end{itemize}
 
  \todo{american/british english consistency} 
- \todo{oxford comma?}
+ \todo{oxford comma?, citation style }
 
 \newpage % bibliography should start on new pages for nicer formatting, can delete this if space is not enough. keep it for now.
 \printbibliography

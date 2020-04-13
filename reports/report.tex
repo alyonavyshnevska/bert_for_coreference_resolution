@@ -17,6 +17,7 @@
 \usepackage{amssymb}
 \usepackage{subfig}
 \usepackage{booktabs, dcolumn, caption, bm}
+\usepackage{makecell}
 \newcolumntype{d}[1]{D{.}{.}{#1}} % "decimal" column type
 \renewcommand{\ast}{{}^{\textstyle *}} % for raised "asterisks"
 \graphicspath{ {./figures/} }
@@ -164,7 +165,7 @@ While earlier machine learning based-approach depends on hand-crafted features, 
 %A qualitative analysis done by the authors suggests that BERT-large (unlike BERT-base) is significantly better at distinguishing between related yet distinct entities or concepts.
 
 
-\subsection{Probing Model}
+\subsection{Probing Tasks}
 % \textcite{liu2019linguistic}  Ling Knowledge and Transfer, Negative Samples, arc prediction task
 
 % explain probing model in general, we are interested in particular in coref arc prediction
@@ -173,17 +174,27 @@ While earlier machine learning based-approach depends on hand-crafted features, 
 % kantor and globerson, frozen bert
 % xu and yang, GCN to capture syntax embeddings
 
+% intro.. how analysis in NLP has been done....interpretability is an issue.. transition to probing model..
 
-Recently, there has been interesting work done to simplify state-of-the-art task-specific NLP models. 
- \textcite{liu2019linguistic} show evidence that frozen contextual represenations of word sequences fed into linear models can show similar levels of performance as state-of-the-art task-specific models on many NLP tasks.
-The authors use probing models, also known as auxiliary or diagnostic classifiers \parencite{shi2016string, kadar2017representation} to analyse the linguistic information within contextual word representations. To test how the probing model performs in comparison to ELMo, the authors tested the models on a coreference arc prediction task, where the model predicts whether two mentions corefer. The Ontonotes dataset was used. To train the probing model the authors generate negative examples, where mentions that do not corefer are fed into the probing model alongside the mentions that do corefer. In our work we will also build our experiments similar to coreference arc prediction tasks suggested by the authors.
+
+%Recently, there has been interesting work done to simplify state-of-the-art task-specific NLP models. 
+% \textcite{liu2019linguistic} show evidence that frozen contextual represenations of word sequences fed into linear models can show similar levels of performance as state-of-the-art task-specific models on many NLP tasks.
+%The authors use probing models, also known as auxiliary or diagnostic classifiers \parencite{shi2016string, kadar2017representation} to analyse the linguistic information within contextual word representations. To test how the probing model performs in comparison to ELMo, the authors tested the models on a coreference arc prediction task, where the model predicts whether two mentions corefer. The Ontonotes dataset was used. To train the probing model the authors generate negative examples, where mentions that do not corefer are fed into the probing model alongside the mentions that do corefer. In our work we will also build our experiments similar to coreference arc prediction tasks suggested by the authors.
 
 %\textcite{tenney2019context} Probing Model
-\textcite{tenney2019context} introduced edge probing task design. For coreference resolution, the models had to determining whether two spans of tokens refer to the same entity. In order to investigate how good the contextual word representation models can model long-range dependencies, the authors used a fixed-width convolutional layer on top of the word representations to build spans of word pieces. The authors concluded that using the CNN layers on top of BERT-large pretarined model has performed particularly well on difficult semantic tasks, such as coreference resolution. Hence, in out work we will also follow the approach of the authors to construct our baseline. 
+%\textcite{tenney2019context} introduced edge probing task design. For coreference resolution, the models had to determining whether two spans of tokens refer to the same entity. In order to investigate how good the contextual word representation models can model long-range dependencies, the authors used a fixed-width convolutional layer on top of the word representations to build spans of word pieces. The authors concluded that using the CNN layers on top of BERT-large pretarined model has performed particularly well on difficult semantic tasks, such as coreference resolution. Hence, in out work we will also follow the approach of the authors to construct our baseline. 
 % and found that existing models trained on language modeling and translation produce strong representations for syntactic phenomena, but only offer comparably small improvements on semantic tasks over a non-contextual baseline. 
 
 %tenney use span representation, but how will it perform using Lee's ?
 
+Along with the rise of deep learning architectures across a plethora of NLP tasks, there is also some concern regarding its interpretability and whether if neural-based approach is able to capture linguistic concepts. The most common method to explore linguistic properties in neural network components is by using the hidden state activations to predict the property of interest, also known as "probing tasks" \parencite{conneau-etal-2018-cram} or "auxiliary prediction tasks" \parencite{auxilliarypredictiontasks}. \parencite{shi2016string} use the internal representations of LSTM encoder as an input to train logistic regression classifier that predicts various syntactic properties. \parencite{conneau-etal-2018-cram} study the linguistic properties of fixed-length sentence encoders with a bidirectional LSTM and gated convolutional networks.
+
+\parencite{liu2019linguistic} explore representations produced by pretrained contextualizers and show that frozen contextual representations fed into linear models can show similar levels of performance as state-of-the-art task-specific models on many NLP tasks. They also introduced coreference arc prediction task, where linear models are used to predict whether if two mentions corefer. Concurrently, \parencite{tenney2019context} introduced edge probing framework, which focuses on linguistic analysis on sub-sentence level. Their approach uses a linear model with a projection layer and attention mechanism on top of frozen contextual vectors to predict linguistic properties. Our approach is most similar to \parencite{liu2019linguistic} and \parencite{tenney2019context}, but we use span representation by \parencite{lee2017end} and focus on examining coreference phenomena.
+
+
+
+% describe approach to understand what neural network captures
+% focus on span level 
 \section{Overview of Span-Ranking Architecture}
 % Move Lee 2017, Lee 2018, Joshi 2019 here, with a more in-depth explanation, separate it from Related Work
 The first coreference resolution model that is trained in an end-to-end manner without relying on any syntactic parser or hand-engineered mention detector is introduced by \parencite{lee2017end}. To construct correct coreference clusters, the neural model learn to jointly model mention detection and coreference prediction using span-ranking approach.  With span-ranking approach, the model is able to consider all spans in a document up to a defined maximum length as a candidate mention and select the corresponding antecedent for each mention based on the antecedent distribution. We will further refer to the model as \textit{e2e-coref} in the paper.
@@ -369,7 +380,7 @@ We compare the span representation used in the span-ranking model against the ba
 %In order to answer our second research question is whether the span representations encoded with a pre-trained BERT model simply modelling local coreference and will it be able to encode non-local coreference dependencies. In order to answer it, we bucket the test data into separate groups based on the the length of the coreference distance between the a mention and antecedent. We do separate qualitative and quantitative analysis on the buckets in order to analyse the differences in performance of our models based on how large the distance is. 
 
 %does it capture local context? How does it perform on non-local context?
-We want to understand better about the capability of the span representation from BERT encoder that is fine-tuned on coreference resolution task. Is it able to encode long-range coreference, or is it just simply modelling local coreference? We also want to answer how well does the model learn from local and long-range context within the mention-span. In order to answer both of these questions, we extend our baseline by introducing a convolutional layer to incorporate surrounding context and improves the baseline span representation. We replace the projection layer in our probing architecture with a fully-connected 1D CNN layer with a kernel width of 3 and 5, stride of 1 and same padding to properly include contextual embeddings at the beginning and end of the mention-span. This is equivalent to seeing $\pm$1 and $\pm$3 tokens around the center word respectively. We also initialize the weights of the CNN layer with Kaiming initialization \parencite{kaiming}. Using this extended probing architecture with CNN layer as another baseline, which we will refer to as CNN baseline in this paper, enables us to see the contribution of local and non-local context to the performance of the probing model. 
+We want to understand better about the capability of the span representation from BERT encoder that is fine-tuned on coreference resolution task. Is it able to encode long-range coreference, or is it just simply modelling local coreference? We also want to answer how well does the model learn from local and long-range context within the mention-span. In order to answer both of these questions, we extend our baseline by introducing a convolutional layer to incorporate surrounding context and improves the baseline span representation, following \parencite{tenney2019context}. We replace the projection layer in our probing architecture with a fully-connected 1D CNN layer with a kernel width of 3 and 5, stride of 1 and same padding to properly include contextual embeddings at the beginning and end of the mention-span. This is equivalent to seeing $\pm$1 and $\pm$3 tokens around the center word respectively. We also initialize the weights of the CNN layer with Kaiming initialization \parencite{kaiming}. Using this extended probing architecture with CNN layer as another baseline, which we will refer to as CNN baseline in this paper, enables us to see the contribution of local and non-local context to the performance of the probing model. 
 
 To investigate whether if the span representation is able to capture long-range coreference relation or not, we see how our probing model performs with various distance between mention-spans. We separate pair of mention-spans that appear in the OntoNotes test set into several buckets, based on the distance between last token of mention-span $w_{i}$ and first token of mention-span $w_{j}$, where $w_{j}$ occurs after $w_{i}$. Each bucket contains at least 50 examples of pair of mention-spans. 
 
@@ -477,25 +488,83 @@ We compare how our probing model performs with various span separation distance 
 
 \subsection{Design of Qualitative Analysis}
 
+% confusion matric bert-base
+\begin{table}[ht]
+\captionsetup{singlelinecheck = false, justification=justified}
+\setlength\tabcolsep{0pt} % let LaTeX figure out amount of inter-column whitespace
+\label{turns}
+\begin{tabular*}{0.8\textwidth}{@{\extracolsep{\fill}} l *{4}{d{1.2}} }
+\toprule
+  \multicolumn{1}{c}{} & \multicolumn{1}{c}{True Coreferent} & \multicolumn{1}{c}{True Non-Coreferent} &  \multicolumn{1}{c}{Precision} \\ 
+  \midrule
+  \midrule
+\makecell[l]{Predicted \\ Coreferent}  & 
+\multicolumn{1}{c}{\makecell{575 \\ True Positives}} & \multicolumn{1}{c}{\makecell{51 \\ False Positives}} & 0.92 \\
+\midrule 
+\makecell[l]{Predicted \\ Non-Coreferent} & 
+\multicolumn{1}{c}{\makecell{42 \\ False Negatives}} & \multicolumn{1}{c}{\makecell{580 \\ True Negatives}} & \\
+\midrule
+Recall & 0.93 & & \\
+\bottomrule
+\end{tabular*}
+\caption{Confusion Matrix for BERT-base c2f. Subset Size is 1250 data points.}
+\label{table:confusion-matrix-base}
+\end{table}
+
+% confusion matric bert-large
+\begin{table}[ht]
+\captionsetup{singlelinecheck = false, justification=justified}
+\setlength\tabcolsep{0pt} % let LaTeX figure out amount of inter-column whitespace
+\label{turns}
+\begin{tabular*}{0.8\textwidth}{@{\extracolsep{\fill}} l *{4}{d{1.2}} }
+\toprule
+  \multicolumn{1}{c}{} & \multicolumn{1}{c}{\makecell{True \\ Coreferent}} & \multicolumn{1}{c}{\makecell{True \\ Non-Coreferent}} & \multicolumn{1}{c}{Precision} \\ 
+ \midrule
+ \midrule
+ \makecell[l]{Predicted \\ Coreferent}  & 
+\multicolumn{1}{c}{\makecell{576 \\True Positives}} & \multicolumn{1}{c}{\makecell{40 \\ False Positives}} & 0.93 \\
+\midrule 
+\makecell[l]{Predicted \\ Non-Coreferent} & 
+\multicolumn{1}{c}{\makecell{44 \\ False Negatives}} & \multicolumn{1}{c}{\makecell{588 \\ True Negatives}} & \\
+\midrule
+Recall & 0.93 & & \\
+\bottomrule
+\end{tabular*}
+\caption{Confusion Matrix for BERT-large c2f. Subset Size is 1250 data points.}
+\label{table:confusion-matrix-large}
+\end{table}
+
 Our aim is to present qualitative error analysis for predicted coreference between mention-pairs. We identify and characterize a set of challenging errors common to state-of-the-art systems dealing with coreference resolution in English. Such quialitative analysis enables us to detect patterns in errors that our system produces and to discuss underlying reasons for such errors. As true positives we treat the pair of one mention and another mention belonging to the same coreference chain which matches the corresponding mention in the gold standard. 
 
 We conducted our error analysis on 4 models: BERT-base c2f (cased, fine-tuned), BERT-large c2f (cased, fine-tuned), BERT-base (cased, original) baseline, and BERT-large (cased, original) baseline. We used a subsample of 100 coreference clusters from the Ontonotes test dataset. We divide errors into the following categories: \textit{Related Entities, Lexical, Pronouns, Gender, Mention Paraphrasing, Conversation,} and \textit{Misc}. Although \textit{Gender} can be considered a subcategory of \textit{Pronouns}, the decision to separate it is motivated by the curiosity to find out whether gender bias is present in the models. 
 
+
 % joshi 0-25 error analysis
-\begin{table}[]
-\begin{tabular}{|l|l|l|l|}
-\hline
-Category & Snippets & base c2f & large c2f \\ \hline
-\begin{tabular}[c]{@{}l@{}}Similar \\ Word Forms\end{tabular} & \begin{tabular}[c]{@{}l@{}}... in some of the questioning eh of Miller, I think ... \\ you have Judy Miller there ( 13 )\end{tabular} & 3 & 0 \\ \hline
-Anaphora & \begin{tabular}[c]{@{}l@{}}... we should say it was very prompt with traffic management \\ and emergency repair, ah, because it involved various ( 5 )\end{tabular} & 8 & 4 \\ \hline
-Gender & none & 0 & 0 \\ \hline
-\begin{tabular}[c]{@{}l@{}}Mention \\ Paraphrasing\end{tabular} & \begin{tabular}[c]{@{}l@{}}When someone sews a patch over a hole in an old coat,\\  they ... If they do, the patch will shrink ( 22 )\end{tabular} & 1 & 1 \\ \hline
-\begin{tabular}[c]{@{}l@{}}Temporal \\ and Spacial\end{tabular} & \begin{tabular}[c]{@{}l@{}}... people from economic circles, who even predicted that \\ in 1998 ... They pointed out that, this year, except ... ( 13 )\end{tabular} & 1 & 2 \\ \hline
-Misc. & \begin{tabular}[c]{@{}l@{}}... I want to turn now to uh President Bush ' s uh meeting ... \\  whether it was staged how shocking ( 4 )\end{tabular} & 1 & 1 \\ \hline
-\textit{Total} &  & 14 & 8 \\ \hline
-\end{tabular}
-\caption{Insert later: bold false positives, cursive false negatives}
-\label{tab:qualitative-0-25}
+
+\begin{table}[ht]
+\captionsetup{singlelinecheck = false, justification=justified}
+\setlength\tabcolsep{0pt} % let LaTeX figure out amount of inter-column whitespace
+\label{turns}
+\begin{tabular*}{\textwidth}{@{\extracolsep{\fill}} l *{4}{d{1.2}} }
+\toprule
+\multicolumn{1}{c}{Category} & \multicolumn{1}{c}{Snippet} & \multicolumn{1}{c}{base c2f} & \multicolumn{1}{c}{large c2f}  \\
+\midrule
+\midrule
+\makecell[l]{Similar \\ Word Forms} & \multicolumn{1}{l}{\makecell[l]{... in some of the questioning eh of \textit{Miller}, I think ... \\ you have \textit{Judy Miller} there ( 13 )  \\  \textit{Director Men Xianlong, Mr. Meng Xianlong, of the} \\ \textit{Command Center of the Beijing Municipal Traffic} \\ \textit{Administration} ... hear what \textit{Director Meng said} ... ( 7 ) }} & 3 & 0 \\
+\midrule
+\makecell[l]{Anaphora} & \multicolumn{1}{l}{\makecell[l]{... it was very prompt with\textit{ traffic management and} \\ \textit{emergency repair} ... ah, because \textit{it} involved various ( 5 ) \\ ... \textit{the number of science and technology consulting} \\ \textit{enterprises}  ... more than double of \textit{that} ... ( 10 ) }} & 9 & 5 \\
+\midrule
+Gender & \multicolumn{1}{l}{\makecell[l]{none}} & 0 & 0 \\
+\midrule
+\makecell[l]{Mention \\ Paraphrasing} & \multicolumn{1}{l}{\makecell[l]{When someone sews a patch over \textbf{a hole in an old coat},\\  they ... If they do, \textbf{the patch} will shrink ( 22 )}} & 1 & 1 \\
+\midrule
+\makecell[l]{Temporal \\ and Spacial} &  \multicolumn{1}{l}{\makecell[l]{... people from economic circles, who even predicted that \\ in \textit{1998} ... They pointed out that, \textit{this year}, except ... ( 13 ) \\ ... \textbf{the Jiang-Huai area} ... experience continuous rainfall. \\ ... \textbf{the Huang-Huai area} will bid ... ( 23 ) }} & 1 & 2 \\
+\midrule
+Total &  & 14 & 8 \\
+\bottomrule
+\end{tabular*}
+\caption{Error Analysis of BERT-base c2f and BERT-large c2f models for examples with short-range coreference (0-25 tokens apart). False positives are denoted \textbf{bold}, false negatives -- \textit{cursive}. }
+\label{table:error-0-25}
 \end{table}
 
 In the table: bold are false positives, cursive are false negatives.
@@ -505,14 +574,20 @@ Our hypothesis is that mentions that are separated by a large distance will have
 The most difficult for all models is ... \todo{add this}. There is a tendency for all systems to ... \todo{add this}. The least problematic category for all models is... 
 
 % subsections for error categories
-\subsection{Anaphora Resolution}
+\subsection{Similar Word Forms} 
+The word forms of the two mentions are similar, or the same graphems appear in both mentions, but they refer to different entities.
+
+\subsection{Anaphora}
 
 Pronouns coreference spanning over 100 tokens is intrinsically difficult, even for a human. The model predicts pronouns relating to a mention 200 tokens in distance. 
 
 Agreement is good even when predicting oven 200 words. - Them == her colleagues guesses correctly
 
+\subsection{Gender}
+Usually in context of a gender pronoun relating to a name of a person.
+no problems with common names. 
+In the analysed subsample only one source of errors -- \textbf{Scooter Libby} is predicted to corefer with \textit{she}. Interestingly, a male name is considered to be female and not the other way around, as one would expect. 
 
-\subsection{Distinct Entities} Model merges distinct entities into one cluster 
 
 \subsection{Mention Paraphrasing} Error in failing to label two mentions as referring to the same entity on one hand and labelling two distinct mentions as coreferent on the other hand.
 
@@ -520,37 +595,39 @@ Goods and Intellectual property Rights are deemed coreferent by joshi base: lega
 
 Jesus and Young Man. Part of the dialog between Jesus and a young man.
 
-\subsection{Morphologically Related} 
-The word forms of the two mentions are similar, or the same graphems appear in both mentions, but they refer to different entities.
-
-\subsection{Gender}
-Usually in conext of a gender pronoun relating to a name of a person.
-no problems with common names. Troeble with Scooter Libby as she.
 
 \subsection{Temporal and Spacial Agreement}
 Mention paraphrasing with reference to a specific date (e.g. January 3 and yesterday) and a specific spacial areas (two Chinese provinces).
 
 1996 and 1997 are labeled as coreferent by joshi's base model. Or this year and 1994. This is a mistake that a human will likely not do.
 
-% 26-100
+% joshi 26-100 error analysis
 \begin{table}[ht]
-\begin{tabular}{|l|l|l|l|}
-\hline
-Category & Snippets &  & joshi large \\ \hline
-\begin{tabular}[c]{@{}l@{}}Similar\\ Word Forms\end{tabular} & \begin{tabular}[c]{@{}l@{}}... the big news for me was Miller recounting what ...\\  Tate by the way tells the Times that that account is false ( 76 )\end{tabular} & 3 & 4 \\ \hline
-Anaphora & \begin{tabular}[c]{@{}l@{}}Actually, this morning, some listeners, ah ... \\ are many office buildings, ah, a lot of them ... ( 44 )\end{tabular} & 15 & 14 \\ \hline
-Gender & \begin{tabular}[c]{@{}l@{}}... killed a piece written by a reporter about Scooter Libby ... \\ They didn' t say that you know until she walked out ( 158 )\end{tabular} &  & 1 \\ \hline
-\begin{tabular}[c]{@{}l@{}}Mention \\ Paraphrasing\end{tabular} & \begin{tabular}[c]{@{}l@{}}... when importing and exporting goods ... \\ The owners of intellectual property rights who ... ( 77 )\end{tabular} & 8 & 4 \\ \hline
-\begin{tabular}[c]{@{}l@{}}Temporal \\ and Spacial\end{tabular} & \begin{tabular}[c]{@{}l@{}}... the Huang-Huai area through southern North China ... \\ there will also be less snow in Northwest China ( 80 )\end{tabular} & 2 & 2 \\ \hline
-Misc. & \begin{tabular}[c]{@{}l@{}}... President Clinton wanted to receive money for his library. \\ The library ( 1 )\end{tabular} &  & 1 \\ \hline
-\textit{Total} &  & 28 & 26 \\ \hline
-\end{tabular}
-\caption{Add later}
-\label{tab:qualitative-26-100}
+\captionsetup{singlelinecheck = false, justification=justified}
+\setlength\tabcolsep{0pt} % let LaTeX figure out amount of inter-column whitespace
+\label{turns}
+\begin{tabular*}{\textwidth}{@{\extracolsep{\fill}} l *{4}{d{1.2}} }
+\toprule
+\multicolumn{1}{c}{Category} & \multicolumn{1}{c}{Snippet} & \multicolumn{1}{c}{base c2f} & \multicolumn{1}{c}{large c2f}  \\
+\midrule
+\midrule
+\makecell[l]{Similar \\ Word Forms} & \multicolumn{1}{l}{\makecell[l]{... the big news for me was Miller \textbf{recounting} what ...\\  Tate by the way tells the Times that that \textbf{account} is false ( 76 ) \\ ... this is the Dick Cheney aide she \textbf{agreed} to refer ... \\ I think the \textbf{agreement} was strange ( 85 ) }} & 3 & 5 \\
+\midrule
+\makecell[l]{Anaphora} & \multicolumn{1}{l}{\makecell[l]{Actually, this morning, \textit{some listeners}, ah, happen to tell ... \\ a lot of \textit{them} as well as a lot of our friends ... ( 44 ) \\ ...the reactions of citizens. -- an SMS. \textbf{I} saw it ... \\ took the subway here. Do \textbf{you} think that ... ( 96 ) }} & 15 & 14 \\
+\midrule
+Gender & \multicolumn{1}{l}{\makecell[l]{... killed a piece written by a reporter about\textbf{ Scooter Libby} ... \\ They didn' t say that you know until \textbf{she} walked out ( 58 )}} & 0 & 1 \\
+\midrule
+\makecell[l]{Mention \\ Paraphrasing} & \multicolumn{1}{l}{\makecell[l]{... when importing and exporting \textbf{goods} ... \\ The owners of \textbf{intellectual property rights} who ... ( 77 ) \\ ... as many as three times the role of Valerie Plame ... \\ millions of dollars in legal fees in \textbf{Miss Miller's} case. ( 54 ) }} & 8 & 4 \\
+\midrule
+\makecell[l]{Temporal \\ and Spacial} &  \multicolumn{1}{l}{\makecell[l]{... the Huang-Huai area through \textbf{southern North China} ... \\ there will also be less snow in \textbf{Northwest China} ( 80 ) \\ ... some areas of South China, \textbf{Southwest China}, and ... \\ southern North China and \textbf{the Huang-Huai area} ... ( 80 ) }} & 2 & 2 \\
+\midrule
+Total &  & 28 & 26 \\
+\bottomrule
+\end{tabular*}
+\caption{Error Analysis of BERT-base c2f and BERT-large c2f models for examples with middle-range coreference (26-100 tokens apart). False positives are denoted \textbf{bold}, false negatives -- \textit{cursive}. }
+\label{table:error-26-100}
 \end{table}
 
-\subsection{Miscellaneous}
-Majority of mentions here involve a large Noun Phrase that is falsely identified as coreferent with a verb or a noun. Or anything else that didn't generalise onto other examples. 
 
 The most difficult for 
 
@@ -568,37 +645,49 @@ The results we introduced in this paper has been tested solely on an English cor
 Hence, the high results may be a phenomena particular to this language. For morphologically or syntactically complex languages the models would have struggled more. A benefit of using neural models for coreference resolution is their ability to use contextualized word embeddings to capture similarity between words, a property that many traditional feature-based models lack. However, a similar analysis should be done for other languages before one can generalize that machine-learning based models outperform rule-based models universally. % maybe it's more relevant in the conclusion A: I rewrote it. what about now?
 
 % over 100
-\begin{table}[]
-\begin{tabular}{|l|l|l|l|}
-\hline
-Category & Snippets & base c2f & large c2f \\ \hline
-\begin{tabular}[c]{@{}l@{}}Similar\\ Word Forms\end{tabular} & \begin{tabular}[c]{@{}l@{}}... they contacted Clinton' s office back in ... \\ the first time that the Clinton forces learned about ... ( 370 )\end{tabular} & 11 & 8 \\ \hline
-Anaphora & \begin{tabular}[c]{@{}l@{}}... took so long is that not only was she negotiating ... \\ And on that point Arianna on that ... ( 180 )\end{tabular} & 22 & 21 \\ \hline
-Gender & \begin{tabular}[c]{@{}l@{}}... not accept the waiver of confidentiality that Scooter Libby \\ offered ... her notes while they were defending her ( 1141 )\end{tabular} &  & 1 \\ \hline
-\begin{tabular}[c]{@{}l@{}}Mention \\ Paraphrasing\end{tabular} & \begin{tabular}[c]{@{}l@{}}... but first Judy Miller and the New York Times finally ... \\ in covering the controversy the editors killed ... ( 226 )\end{tabular} & 11 & 14 \\ \hline
-\begin{tabular}[c]{@{}l@{}}Temporal \\ and Spacial\end{tabular} & \begin{tabular}[c]{@{}l@{}}... and only 582 million US dollars last year ... \\ momentum can not be restrained, this year ... ( 379 )\end{tabular} & 6 & 5 \\ \hline
-Misc. & \begin{tabular}[c]{@{}l@{}}... President Bush' s uh meeting uh uh photo ... \\ would think that you would do something like ( 261 )\end{tabular} & 1 & 1 \\ \hline
-\textit{Total} &  & 51 & 50 \\ \hline
-\end{tabular}
-\caption{Add later}
-\label{tab:qualitative-over-100}
+\begin{table}[ht]
+\captionsetup{singlelinecheck = false, justification=justified}
+\setlength\tabcolsep{0pt} % let LaTeX figure out amount of inter-column whitespace
+\label{turns}
+\begin{tabular*}{\textwidth}{@{\extracolsep{\fill}} l *{4}{d{1.2}} }
+\toprule
+\multicolumn{1}{c}{Category} & \multicolumn{1}{c}{Snippet} & \multicolumn{1}{c}{base c2f} & \multicolumn{1}{c}{large c2f}  \\
+\midrule
+\midrule
+\makecell[l]{Similar \\ Word Forms} & \multicolumn{1}{l}{\makecell[l]{... they contacted \textbf{Clinton' s office back} in ... \\ the first time that the \textbf{Clinton forces} learned about ... ( 370 ) \\ 
+... of the different departments of \textit{Beijing Municipality} ... \\ received this order from the \textit{municipal government}( 200 ) }} & 11 & 8 \\
+\midrule
+\makecell[l]{Anaphora} & \multicolumn{1}{l}{\makecell[l]{ ... took so long is that not only was \textbf{she} negotiating ... \\ And on that point \textbf{Arianna} on that ... ( 180 ) \\ ... the news on the day of \textit{the accident} ... \\ instead of the east and \textit{it} did not ( 277 ) }} & 23 & 22 \\
+\midrule
+Gender & \multicolumn{1}{l}{\makecell[l]{... not accept the waiver of confidentiality that Scooter Libby \\ offered ... her notes while they were defending her ( 1141 )}} & 0 & 1 \\
+\midrule
+\makecell[l]{Mention \\ Paraphrasing} & \multicolumn{1}{l}{\makecell[l]{ ... but first \textbf{Judy Miller and the New York Times} finally ... \\ in covering the controversy \textbf{the editors} killed ... ( 226 ) \\ ...  read a statement from \textbf{a Sixty Minutes spokesman} ... \\ When \textbf{Mister Carson the representative} spoke ... ( 241 ) 
+.}} & 11 & 14 \\
+\midrule
+\makecell[l]{Temporal \\ and Spacial} &  \multicolumn{1}{l}{\makecell[l]{ ... and only 582 million US dollars \textbf{last year}... \\ momentum can not be restrained, \textbf{this year} ... ( 379 ) \\ 
+... News Agency, the UN, \textit{February 13th}, Today ... \\  multi-national forces on \textit{the 13th} at 4 ( 153 ) 
+}} & 6 & 5 \\
+\midrule
+Total &  & 51 & 50 \\
+\bottomrule
+\end{tabular*}
+\caption{Error Analysis of BERT-base c2f and BERT-large c2f models for examples with long-range coreference (over 100 tokens apart). False positives are denoted \textbf{bold}, false negatives -- \textit{cursive}. }
+\label{table:error-over-100}
 \end{table}
 
 
-\subsection{Future Work}
+\section{Conclusion and Future Work}
+
 \begin{itemize}
+\item so what have we learned about coref in general and local dependencies in particular
 \item everything we don't have the time for
 \item mention other corpora that could be used for finetuning (Winogrande, GAP...)
 \item apply roberta, spanbert (sota result, architecture still use c2f)
 \item try building span representations from intermediate layers, use scalar mixing
-\item comparing attention head of Joshi's and baseline?
-
-\end{itemize}
-
-\section{Conclusion}
-
-\begin{itemize}
-\item so what have we learned about coref in general and local dependencies in particular
+\item comparing attention head of Joshi's and
+\item Efficient and long-range Transformers to capture long-range dependencies better, e.g. Compressive Transformers or any other sparse variant
+\item limitation of probing model, use control tasks?
+\item want to test span representation with frozen embeddings but trained attention, but alas GPU power is not enough
 \end{itemize}
 
  \todo{american/british english consistency} 

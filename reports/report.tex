@@ -187,9 +187,10 @@ While earlier machine learning based-approach depends on hand-crafted features, 
 
 %tenney use span representation, but how will it perform using Lee's ?
 
-Along with the rise of deep learning architectures across a plethora of NLP tasks, there is also some concern regarding its interpretability and whether if neural-based approach is able to capture linguistic concepts. The most common method to explore linguistic properties in neural network components is by using the hidden state activations to predict the property of interest, also known as "probing tasks" \parencite{conneau-etal-2018-cram} or "auxiliary prediction tasks" \parencite{auxilliarypredictiontasks}. \parencite{shi2016string} use the internal representations of LSTM encoder as an input to train logistic regression classifier that predicts various syntactic properties. \parencite{conneau-etal-2018-cram} study the linguistic properties of fixed-length sentence encoders with a bidirectional LSTM and gated convolutional networks.
+Along with the rise of deep learning architectures across a plethora of NLP tasks, there is also some concern regarding its interpretability and whether if neural-based approach is able to truly capture linguistic concepts. The most common method to explore linguistic properties in neural network components is by using the hidden state activations to predict the property of interest, also known as "probing tasks" \parencite{conneau-etal-2018-cram} or "auxiliary prediction tasks" \parencite{auxilliarypredictiontasks}. \parencite{shi2016string} use the internal representations of LSTM encoder as an input to train logistic regression classifier that predicts various syntactic properties. \parencite{conneau-etal-2018-cram} study the linguistic properties of fixed-length sentence encoders with a bidirectional LSTM and gated convolutional networks.
 
-\parencite{liu2019linguistic} explore representations produced by pretrained contextualizers and show that frozen contextual representations fed into linear models can show similar levels of performance as state-of-the-art task-specific models on many NLP tasks. They also introduced coreference arc prediction task, where linear models are used to predict whether if two mentions corefer. Concurrently, \parencite{tenney2019context} introduced edge probing framework, which focuses on linguistic analysis on sub-sentence level. Their approach uses a linear model with a projection layer and attention mechanism on top of frozen contextual vectors to predict linguistic properties. Our approach is most similar to \parencite{liu2019linguistic} and \parencite{tenney2019context}, but we use span representation by \parencite{lee2017end} and focus on examining coreference phenomena.
+\parencite{liu2019linguistic} explore representations produced by pretrained contextualizers and show that frozen contextual representations fed into linear models can show similar levels of performance as state-of-the-art task-specific models on many NLP tasks. They also introduced coreference arc prediction task, where linear models are used to predict whether if two mentions corefer. Concurrently, \parencite{tenney2019context} introduced edge probing framework, which focuses on linguistic analysis on sub-sentence level. Their approach uses a linear model with a projection layer and attention mechanism on top of frozen contextual vectors to predict linguistic properties. Clark further extend probing-based approach by proposing an attention-based probing classifiers and showed that attention heads in BERT correspond to linguistic notions of syntax and coreference. Our approach is most similar to \parencite{liu2019linguistic} and \parencite{tenney2019context}, but we use span representation by \parencite{lee2017end} and focus on examining coreference phenomena.
+
 
 
 
@@ -536,11 +537,12 @@ Recall & 0.93 & & \\
 
 Our aim is to present qualitative error analysis for predicted coreference between mention-pairs. We identify and characterize a set of challenging errors common to state-of-the-art systems dealing with coreference resolution in English. Such quialitative analysis enables us to detect patterns in errors that our system produces and to discuss underlying reasons for such errors. As true positives we treat the pair of one mention and another mention belonging to the same coreference chain which matches the corresponding mention in the gold standard. 
 
-We conducted our error analysis on 4 models: BERT-base c2f (cased, fine-tuned), BERT-large c2f (cased, fine-tuned), BERT-base (cased, original) baseline, and BERT-large (cased, original) baseline. We used a subsample of 100 coreference clusters from the Ontonotes test dataset. We divide errors into the following categories: \textit{Related Entities, Lexical, Pronouns, Gender, Mention Paraphrasing, Conversation,} and \textit{Misc}. Although \textit{Gender} can be considered a subcategory of \textit{Pronouns}, the decision to separate it is motivated by the curiosity to find out whether gender bias is present in the models. 
+We conducted our error analysis the two models that are the focus of this paper: BERT-base c2f (cased, fine-tuned) and BERT-large c2f (cased, fine-tuned). A subset of the test dataset was used for the analysis. The predictions of both models on the same subset of 1250 predictions were analysed. The errors were grouped into the following categories: \textit{Similar Word Forms, Anaphora, Gender, Mention Paraphrasing}, and \textit{Temporal and Spacial Agreement}. Although \textit{Gender} can be considered a subcategory of \textit{Pronouns}, the decision to separate it is motivated by the curiosity to find out whether gender bias is present in the models.
+The raw predictions that have been analysed can be accessed in our Github repository. 
 
+Moreover, the errors were also categorised into \textit{True positives, True Negatives, False Positives,} and \textit{False Negatives}. The numbers are accessible in the table \ref{table:confusion-matrix-base} and \ref{table:confusion-matrix-large}. We observe that false positives constitute 4,08\% of the predictions for BERT-base c2f, while false negatives make up 3,36\% of predictions for the model. BERT-base c2f yields only 3,2\% false positives, although a slightly higher 3,5\% false negatives.
 
 % joshi 0-25 error analysis
-
 \begin{table}[ht]
 \captionsetup{singlelinecheck = false, justification=justified}
 \setlength\tabcolsep{0pt} % let LaTeX figure out amount of inter-column whitespace
@@ -567,11 +569,9 @@ Total &  & 14 & 8 \\
 \label{table:error-0-25}
 \end{table}
 
-In the table: bold are false positives, cursive are false negatives.
+Tables \ref{table:error-0-25}, \ref{table:error-26-100}, and \ref{table:error-over-100} portray a detailed overview of the errors made my both models in each category. As one observes immediately, mentions that are separated by a large distance have a higher error rate than mentions separated by smaller distances. 
 
-Our hypothesis is that mentions that are separated by a large distance will have a higher error rate in all categories. 
-
-The most difficult for all models is ... \todo{add this}. There is a tendency for all systems to ... \todo{add this}. The least problematic category for all models is... 
+We can confidently conclude that BERT-base c2f and BERT-large c2f perform better at resolving coreference locally. The most difficult for all models is anaphora resolution, which is consistent with previous research. The least problematic category for all models is Gender. Out of the 1250 analysed examples on one mention led to errors -- \textit{Scooter Libby}. The mention has been consistently marked as coreferent with \textit{she} and \textit{her}. 
 
 % subsections for error categories
 \subsection{Similar Word Forms} 
@@ -617,7 +617,7 @@ Mention paraphrasing with reference to a specific date (e.g. January 3 and yeste
 \midrule
 Gender & \multicolumn{1}{l}{\makecell[l]{... killed a piece written by a reporter about\textbf{ Scooter Libby} ... \\ They didn' t say that you know until \textbf{she} walked out ( 58 )}} & 0 & 1 \\
 \midrule
-\makecell[l]{Mention \\ Paraphrasing} & \multicolumn{1}{l}{\makecell[l]{... when importing and exporting \textbf{goods} ... \\ The owners of \textbf{intellectual property rights} who ... ( 77 ) \\ ... as many as three times the role of Valerie Plame ... \\ millions of dollars in legal fees in \textbf{Miss Miller's} case. ( 54 ) }} & 8 & 4 \\
+\makecell[l]{Mention \\ Paraphrasing} & \multicolumn{1}{l}{\makecell[l]{... when importing and exporting \textbf{goods} ... \\ The owners of \textbf{intellectual property rights} who ... ( 77 ) \\ ... as many as three times the role of \textbf{Valerie Plame} ... \\ millions of dollars in legal fees in \textbf{Miss Miller's} case. ( 54 ) }} & 8 & 4 \\
 \midrule
 \makecell[l]{Temporal \\ and Spacial} &  \multicolumn{1}{l}{\makecell[l]{... the Huang-Huai area through \textbf{southern North China} ... \\ there will also be less snow in \textbf{Northwest China} ( 80 ) \\ ... some areas of South China, \textbf{Southwest China}, and ... \\ southern North China and \textbf{the Huang-Huai area} ... ( 80 ) }} & 2 & 2 \\
 \midrule
@@ -659,7 +659,7 @@ Hence, the high results may be a phenomena particular to this language. For morp
 \midrule
 \makecell[l]{Anaphora} & \multicolumn{1}{l}{\makecell[l]{ ... took so long is that not only was \textbf{she} negotiating ... \\ And on that point \textbf{Arianna} on that ... ( 180 ) \\ ... the news on the day of \textit{the accident} ... \\ instead of the east and \textit{it} did not ( 277 ) }} & 23 & 22 \\
 \midrule
-Gender & \multicolumn{1}{l}{\makecell[l]{... not accept the waiver of confidentiality that Scooter Libby \\ offered ... her notes while they were defending her ( 1141 )}} & 0 & 1 \\
+Gender & \multicolumn{1}{l}{\makecell[l]{... not accept the waiver of confidentiality that \textbf{Scooter Libby} \\ offered ... her notes while they were defending \textbf{her} ( 1141 )}} & 0 & 1 \\
 \midrule
 \makecell[l]{Mention \\ Paraphrasing} & \multicolumn{1}{l}{\makecell[l]{ ... but first \textbf{Judy Miller and the New York Times} finally ... \\ in covering the controversy \textbf{the editors} killed ... ( 226 ) \\ ...  read a statement from \textbf{a Sixty Minutes spokesman} ... \\ When \textbf{Mister Carson the representative} spoke ... ( 241 ) 
 .}} & 11 & 14 \\

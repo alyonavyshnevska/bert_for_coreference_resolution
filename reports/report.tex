@@ -71,7 +71,14 @@
 
 Coreference resolution, the task that involves determining all referring expressions that point to the same entity in a discourse model, plays a key role for various higher level NLP tasks that involve natural language understanding such as information extraction, question answering, machine translation, text summarization and textual entailment. In coreference resolution task, referring expressions (i.e. mentions) could be a common noun, a proper noun, or a pronoun, which refer to a real-world entity known as the referent. The main goal of a coreference resolution system is to group the mentions such that the corefering mentions are placed together in a coreference cluster.
 
-In the recent years, neural-based coreference resolution approach are more popular, considering neural network capability to learn features automatically with multiple, hierarchical representations coupled with its high performance and ability to generalize better compared to rule-based approach.
+In the recent years, neural-based coreference resolution approach are more popular, considering neural network capability to learn features automatically with multiple, hierarchical representations coupled with its high performance and ability to generalize better compared to rule-based approach. Most of the state-of-the-art deep-learning based coreference resolvers learn representation from word embeddings on a phrase-level, through constructing them explictly \parencite{lee2017end} and continually refining them \parencite{lee2018higher,kantor-globerson-2019-coreference}.
+
+Although such models are powerful, especially with more advanced language representation methods \parencite{devlin2019bert,peters2018elmo}, questions still remained regarding the interpretability of neural NLP models. A wave of recent work has tried to inspect neural NLP models to understand whether if they are truly able to capture linguistic information in a satisfying manner, by trying to associate neural network components with distinct type of linguistic phenomena. Such line of work \parencite{shi2016string,liu2019linguistic,tenney2019context} showed that deep learning-based models can encode a wide array of syntactic and semantic information. 
+
+We follow along this line of work, focusing on BERT model for coreference resolution \parencite{joshi2019coref} and utilise probing task \parencite{tenney2019context,liu2019linguistic} to better understand coreference information that is encoded in the span representation first proposed by \parencite{lee2017end} and how fine-tuning affect the linguistic knowledge learned. We generate mention-span representations for words using BERT embeddings fine-tuned on OntoNotes dataset \parencite{conll} and train a model to make predictions from the mention-span representations alone. If we can train a simple model to predict coreference relation for pair of mentions from their span representations alone, then we can reasonably deduce that span representations encode coreference information.
+
+Our experimental results show that linear probing model trained on top of span representations obtained from fine-tuned BERT on coreference resolution consistently achieve > 90\% accuracy and F1 on OntoNotes test set, which shows that span representations are able to encode significant amount of coreference information. This also suggest that fine-tuning BERT model greatly helps with encoding coreference relations. Furthermore, by ablating components of the span representation, we found that head-finding attention mechanism plays a crucial part in encoding important coreference information. We also show that despite using fine-tuned BERT, the span representation cannot capture non-local coreference relation efficiently. Our implementation is publicly available on GitHub.  \footnote{\url{https://github.com/alyonavyshnevska/bert_for_coreference_resolution}}.
+
 
 % While being a language short of elaborate agreements, English certainly enjoys the most scientific attention. It is a known challenge in NLP to do more research with agreement-rich languages \textit{citation needed}. 
 
@@ -82,20 +89,18 @@ In the recent years, neural-based coreference resolution approach are more popul
 % Our Proposed Solution
 % Very broadly what we intended to to
 
-Since the introduction of pre-trained BERT model  \parencite{devlin2019bert} there has been a lot of research showing how the model outperforms previous state-of-the-art task-specific NLP models. \todo{cite some papers here} % cite more papers here 
-\textcite{joshi2019coref} has introduced BERT models into coreference resolution tasks. However, the researchers have also encoded other information on top of BERT embeddings. 
+%Since the introduction of pre-trained BERT model  \parencite{devlin2019bert} there has been a lot of research showing how the model outperforms previous state-of-the-art task-specific NLP models. \todo{cite some papers here} % cite more papers here 
+%\textcite{joshi2019coref} has introduced BERT models into coreference resolution tasks. However, the researchers have also encoded other information on top of BERT embeddings. 
 
-Our first research question is based on the recent research which shows that the BERT model itself encodes a significant amount of semantic and syntactic information. Therefore, we decided to test how well the span representations using BERT embeddings from the model by \textcite{joshi2019coref} finetuned on Ontonotes dataset \parencite{conll}  can encode coreference resolution information without any layers of additional information about a given sequence. 
+%Our first research question is based on the recent research which shows that the BERT model itself encodes a significant amount of semantic and syntactic information. Therefore, we decided to test how well the span representations using BERT embeddings from the model by \textcite{joshi2019coref} finetuned on Ontonotes dataset \parencite{conll}  can encode coreference resolution information without any layers of additional information about a given sequence. 
 
-As a baseline, we used original pre-trained BERT embeddings. To encode a mention span,  we used a convolutional layer and a  self-attention layer.
+%As a baseline, we used original pre-trained BERT embeddings. To encode a mention span,  we used a convolutional layer and a  self-attention layer.
 
-Our second research question, which naturally follows from the first one, whether the span representations encoded with a pre-trained BERT model simply modelling local coreference? Will it be able to encode non-local coreference dependencies? 
+%Our second research question, which naturally follows from the first one, whether the span representations encoded with a pre-trained BERT model simply modelling local coreference? Will it be able to encode non-local coreference dependencies? 
 
-We found that the span represenations from within the coreference model by \textcite{joshi2019coref} reach \textit{insert some numbers}. The baseline model is at \textit{insert numbers}. This findings suggests that the pre-trained BERT model is a powerful tool for encoding information relevant to coreference resolution. 
+%We found that the span represenations from within the coreference model by \textcite{joshi2019coref} reach \textit{insert some numbers}. The baseline model is at \textit{insert numbers}. This findings suggests that the pre-trained BERT model is a powerful tool for encoding information relevant to coreference resolution. 
 
-For our second research question (non-local VS local dependencies) we found that ... \todo{what we found for local non-locat}
-
-Our code is publicly available on GitHub.  \footnote{\url{https://github.com/alyonavyshnevska/bert_for_coreference_resolution}}.
+%For our second research question (non-local VS local dependencies) we found that ... \todo{what we found for local non-locat}
 
 
 \section{Related Work}
@@ -361,7 +366,7 @@ from the CoNLL-2012 shared task based on the OntoNotes dataset \parencite{conll}
 
 We extend the original Tensorflow implementation of \textit{BERT-coref} \footnote{\url{https://github.com/mandarjoshi90/coref}} in order to build our probing model with Keras frontend \parencite{chollet2015keras}. Our probing model are trained for 50 epochs, using early stopping with patience of 3 and batch size of 512. For optimization, we use Adam \parencite{adam} with a learning rate of 0.001. The weights of the probing model is initialized with Kaiming initialization \parencite{kaiming} and the size of the hidden layer is $d=1024$ with rectified linear units \parencite{relu}.
 
-As mentioned previously, we use both pre-trained BERT model without fine-tuning the encoder weights and BERT model that has been fine-tuned on coreference resolution task (i.e. on OntoNotes annotations). For fine-tuned BERT model, we take the models that yield the best performance on \parencite{joshi2019coref}, which were trained using 128 wordpieces for BERT-base and 384 wordpieces for BERT-large. The fine-tuned model was trained using splitted OntoNotes documents where each segment non-overlaps and fed as a separate instance. This is done as BERT can only accept sequences of at most 512 wordpieces and typically OntoNotes documents require multiple segments to be read entirely. In all of our experiments, we use the cased English BERT models.
+As mentioned previously, we use both pre-trained BERT model without fine-tuning the encoder weights and BERT model that has been fine-tuned on coreference resolution task (i.e. on OntoNotes annotations). For fine-tuned BERT model, we take the models that yield the best performance on \parencite{joshi2019coref}, which were trained using 128 wordpieces for BERT-base and 384 wordpieces for BERT-large. The fine-tuned model was trained using splitted OntoNotes documents where each segment non-overlaps and fed as a separate instance. This is done as BERT can only accept sequences of at most 512 wordpieces and typically OntoNotes documents require multiple segments to be read entirely. In all of our experiments, we use the cased English BERT models. We will further refer the base and large variant as \textit{BERT-base c2f} and \textit{BERT-large c2f} respectively.
 % original BERT
 
 \subsection{Baseline}
@@ -404,7 +409,7 @@ To investigate whether if the span representation is able to capture long-range 
 
 
 \section{Results}
-\subsection{Comparison of Probing Models}
+\subsection{Quantitative Analysis}
 % Relate that it is possible to eliminate second step of the model? Seeing that probing model can be enough to predict coreference links?
 
 % We generate representation from the encoder and train model to make predictions from those features alone. If a simple model can be trained to predict coreference from the span representation alone, we can reasonably conclude that the span representation encode this information
@@ -485,7 +490,7 @@ BERT-large c2f (cased, fine-tuned)    & 93.65 & 93.68 \\
 
 \subsection{Encoding Long-range Coreference}
 
-We compare how our probing model performs with various span separation distance in order to explore whether if the span representation is able to encode long-range coreference or not. Figure \ref{fig:longrange_result} depicts F1 score as a function of the distance of wordpiece tokens between a pair of mention-spans. Although performance with BERT models degrade with larger distance over pair of mention-span, the span representation in \textit{BERT-coref} holds up better in general compared to the baseline or \textit{CNN-baseline}. The BERT-base variant experiences minor degradation in performance to 5 points when $d=125$ tokens, while for BERT-large, the F1 score dropped only by 7 points between $d=0$ tokens and $d=250$ tokens, which suggests that the depth of Transformer layer helps to encode long-range coreference. However, we lack sufficient evidence to suggest that the span representation is able to encode long-range coreference relation efficiently, seeing that although already the encoder has been fine-tuned on OntoNotes, the model still cannot perform consistently across distant spans, with the lowest F1 score of 0.67 and 0.75 points for BERT-base and BERT-large respectively, when $d=451$ to $475$ tokens.
+We compare how our probing model performs with various span separation distance in order to explore whether if the span representation is able to encode long-range coreference or not. Figure \ref{fig:longrange_result} depicts F1 score as a function of the distance of wordpiece tokens between a pair of mention-spans. Although performance with BERT models degrade with larger distance over pair of mention-span, the span representation in \textit{BERT-coref} holds up better in general compared to the baseline or \textit{CNN-baseline}. The BERT-base variant experiences minor degradation in performance to 5 points when $d=125$ tokens, while for BERT-large, the F1 score dropped only by 7 points between $d=0$ tokens and $d=250$ tokens, which suggests that the depth of Transformer layer helps to encode long-range coreference. However, we lack sufficient evidence to suggest that the span representation is able to encode long-range coreference relation efficiently, seeing that although already the encoder has been fine-tuned on OntoNotes, the model still cannot perform consistently across distant spans, with the lowest F1 score of 67\% and 75\% for BERT-base and BERT-large respectively, when $d=451$ to $475$ tokens.
 \begin{figure}[ht]
 \subfloat[]{\label{subfig:bertbase}\includegraphics[clip, width=\textwidth]{long_range_bert_base}} \\
 \subfloat[]{\label{subfig:bertlarge}\includegraphics[clip, width=\textwidth]{long_range_bert_large}}
@@ -499,6 +504,7 @@ We compare how our probing model performs with various span separation distance 
 
 % confusion matric bert-base
 \begin{table}[ht]
+\centering
 \captionsetup{singlelinecheck = false, justification=justified}
 \setlength\tabcolsep{0pt} % let LaTeX figure out amount of inter-column whitespace
 \label{turns}
@@ -522,12 +528,13 @@ Recall & 0.93 & & \\
 
 % confusion matric bert-large
 \begin{table}[ht]
+\centering
 \captionsetup{singlelinecheck = false, justification=justified}
 \setlength\tabcolsep{0pt} % let LaTeX figure out amount of inter-column whitespace
 \label{turns}
 \begin{tabular*}{0.8\textwidth}{@{\extracolsep{\fill}} l *{4}{d{1.2}} }
 \toprule
-  \multicolumn{1}{c}{} & \multicolumn{1}{c}{\makecell{True \\ Coreferent}} & \multicolumn{1}{c}{\makecell{True \\ Non-Coreferent}} & \multicolumn{1}{c}{Precision} \\ 
+  \multicolumn{1}{c}{} & \multicolumn{1}{c}{\makecell{True Coreferent}} & \multicolumn{1}{c}{\makecell{True Non-Coreferent}} & \multicolumn{1}{c}{Precision} \\ 
  \midrule
  \midrule
  \makecell[l]{Predicted \\ Coreferent}  & 
@@ -545,7 +552,7 @@ Recall & 0.93 & & \\
 
 Our aim is to present qualitative error analysis for predicted coreference between mention-pairs. We identify and characterize a set of challenging errors common to state-of-the-art systems dealing with coreference resolution in English. Such quialitative analysis enables us to detect patterns in errors that our system produces and to discuss underlying reasons for such errors. As true positives we treat the pair of one mention and another mention belonging to the same coreference chain which matches the corresponding mention in the gold standard. 
 
-We conducted our error analysis the two models that are the focus of this paper: BERT-base c2f (cased, fine-tuned) and BERT-large c2f (cased, fine-tuned). A subset of the test dataset was used for the analysis. The predictions of both models on the same subset of 1250 predictions were analysed. The errors were grouped into the following categories: \textit{Similar Word Forms, Anaphora, Gender, Mention Paraphrasing}, and \textit{Temporal and Spacial Agreement}. Although \textit{Gender} can be considered a subcategory of \textit{Pronouns}, the decision to separate it is motivated by the curiosity to find out whether gender bias is present in the models.
+We conducted our error analysis the two models that are the focus of this paper: BERT-base c2f (cased, fine-tuned) and BERT-large c2f (cased, fine-tuned). A subset of the test dataset was used for the analysis. The predictions of both models on the same subset of 1250 predictions were analysed. Overall, we found 93 errors for BERT-base and 84 for BERT-large from the same documents. The errors were grouped into the following categories: \textit{Similar Word Forms, Anaphora, Gender, Mention Paraphrasing}, and \textit{Temporal and Spacial Agreement}. Although \textit{Gender} can be considered a subcategory of \textit{Pronouns}, the decision to separate it is motivated by the curiosity to find out whether gender bias is present in the models.
 The raw predictions that have been analysed can be accessed in our Github repository. 
 
 Moreover, the errors were also categorised into \textit{True positives, True Negatives, False Positives,} and \textit{False Negatives}. The numbers are accessible in the table \ref{table:confusion-matrix-base} and \ref{table:confusion-matrix-large}. We observe that false positives constitute 4,08\% of the predictions for BERT-base c2f, while false negatives make up 3,36\% of predictions for the model. BERT-base c2f yields only 3,2\% false positives, although a slightly higher 3,5\% false negatives.
@@ -583,31 +590,31 @@ We can confidently conclude that BERT-base c2f and BERT-large c2f perform better
 
 % subsections for error categories
 \subsection{Similar Word Forms} 
-The word forms of the two mentions are similar, or the same graphems appear in both mentions, but they refer to different entities.
+The category encloses mention pairs that share one or more lexemes. On one hand, there are examples where the tokens of one mention is a proper subset of the other mention. On the other, the category includes mention pairs with morphologically related word forms.
+False positives arise in such examples as "... this is the Dick Cheney aide she \textit{agreed} to refer...". It was labelled as coreferent with a mention "I think the \textit{agreement} was strange...", which occurred 85 token later. 
+False negatives often occur in examples such as "I felt it seems to be the first time that \textit{Beijing Municipality} ... all of us are living in \textit{Beijing} ... ( 32 )". Here, \textit{Beijing} is part of a larger noun phrase \textit{Beijing Municipality} and is not recognised as coreferent with it. Similarly, in the example "... accident occurred at the main and side roads of \textit{Jingguang Bridge, East Third Ring Road, Beijing Municipality}, resulting ... called me at noon and said something happened at \textit{Jingguang Bridge} ... ( 348 ) the latter mention is part of the former mention, although the distance between the two is large. As figure \ref{fig:longrange_result} illustrates, the accuracy drops as distance becomes greater.
 
 \subsection{Anaphora}
 
-Pronouns coreference spanning over 100 tokens is intrinsically difficult, even for a human. The model predicts pronouns relating to a mention 200 tokens in distance. 
+Anaphora resolution for examples spanning over 100 tokens is intrinsically difficult, both for models and for humans. For example, "... and she wouldn't share her notes with \textit{them} although they ... She wouldn't share her notes with \textit{her colleagues} who were writing the story ( 1032 )". At such large distance of 1032 tokens the coreference was not recognised, even though the context of both mentions is very similar. It can be also noticed that false positives retain number and gender agreement over long-range coreference. For example, \textit{him} and \textit{President Clinton's} in "... \textit{President Clinton}'s former lawyer ... former FBI director unloaded on the President who appointed \textit{him} ... ( 107 )" are falsely identified as coreferent, however, the two mentions do agree in number and gender. Hence, one could postulate that BERT embeddings intrinsically carry this information. 
 
-Agreement is good even when predicting oven 200 words. - Them == her colleagues guesses correctly
+Anaphora resolution errors are responsible for the majority of errors in local coreference resolution, as table \ref{table:error-0-25} portraits. For example, \textit{traffic management and emergency repair} isn't labelled as coreferent with "it", even through these are 5 tokens apart in "we should say it was very prompt with \textit{traffic management and emergency repair}, ah, because \textit{it} involved various ... ( 5 )". It also appears that recognising coreference between two pronouns is difficult for the models. The following example demonstrates this: "... that the public has the right to know and \textit{that} that's what \textit{this} is all about ( 4 )". Here, \textit{that} and \textit{this} have been predicted to be coreferent, however, in the gold label they are not.
 
 \subsection{Gender}
-Usually in context of a gender pronoun relating to a name of a person.
-no problems with common names. 
-In the analysed subsample only one source of errors -- \textbf{Scooter Libby} is predicted to corefer with \textit{she}. Interestingly, a male name is considered to be female and not the other way around, as one would expect. 
+We made a choice to aggregate errors relating to gender pronouns in a separate category. In this subset of examples we could only observe one source of such errors -- a given name \textbf{Scooter Libby} in "... one time killed a piece written by a reporter about \textit{Scooter Libby} ... They didn't say that you know until \textit{she} walked out ( 158 ) " It has been predicted to corefer with \textit{she} and \textit{her}. The name was split into three tokens: \textit{Sc, oot, er} and \textit{Libby}. Interestingly, that the models remained consistent in their choice of a gender pronoun for this name. 
 
 
-\subsection{Mention Paraphrasing} Error in failing to label two mentions as referring to the same entity on one hand and labelling two distinct mentions as coreferent on the other hand.
+\subsection{Mention Paraphrasing} The category consists of errors where two mentions that refer to the same entity aren't recognised as coreferent as well as errors where two distinct mentions as labelled coreferent. It appears that often mentions that tend to be surrounded by similar token, such are \textit{George Bush} and \textit{Ronald Reagan}, are labelled coreferent as in "... If Rove gets indicted that could bring down the \textit{Bush} administration ... the ultimate image meister for Ronald Reagan said ... ( 739 ) ". 
 
-Goods and Intellectual property Rights are deemed coreferent by joshi base: legally speaking different things. Might occur in similar laws.
-
-Jesus and Young Man. Part of the dialog between Jesus and a young man.
+As with anaphora resolution we observe a continuous number agreement. In the example "... the peace , stability and development of the world. \textit{Both sides} also exchanged ... six years since the establishment of diplomatic relations between \textit{China and Uruguay} ... ( 164 ) ". The two mentions are not coreferent, however, the model seems to have learned that \textit{both sides} implies two entities. It is plausible, that in some other context \textit{China and Uruguay} can be referred with \textit{both sides}.
 
 
 \subsection{Temporal and Spacial Agreement}
-Mention paraphrasing with reference to a specific date (e.g. January 3 and yesterday) and a specific spacial areas (two Chinese provinces).
+The category aggregates errors that the models have made with regards to spacial and temporal agreement between mentions. For humans such connections are easily resolved, however the results illustrate that both BERT-base c2f and BERT-large c2f models struggle to assign a negative coreference label to, for example, \textit{1996} and \textit{1997}. They also fail to align \textit{February 13th} with \textit{the 13th} in "... Xinhua News Agency, the UN, \textit{February 13th}, Today ... dropped by planes of the multi - national forces on \textit{teh 13th} at 4 ( 153 ) ". 
 
-1996 and 1997 are labeled as coreferent by joshi's base model. Or this year and 1994. This is a mistake that a human will likely not do.
+Moreover, \textit{southern North China} and \textit{Northwest China} do share two lexemes \textit{north} and \textit{China}, however humans would unlikely label these as corefering, whereas the models did so. Similarly, two Chinese geographical entities are predicted to be coreferent in "The east of Southwest China, as well as \textit{the Jiang-Huai area} ... experience continuous rainfall. However, southern North China and \textit{the Huang-Huai area} will bid ... ( 23 ). 
+
+The examples above are clear shortcomings of the models, which might be hard to resolve through more data or more training, since the mentions occur in very similar contexts, however, they point to entities are normally not coreferent. 
 
 % joshi 26-100 error analysis
 \begin{table}[ht]
@@ -637,9 +644,6 @@ Total &  & 28 & 26 \\
 \end{table}
 
 
-The most difficult for 
-
-
 % \begin{itemize}
 % \item long long analysis of what we've seen
 % \item generalisations, parallels
@@ -647,10 +651,6 @@ The most difficult for
 % \item discussion of why they are the way the are
 % \end{itemize}
 
-\subsection{Other Languages}
-
-The results we introduced in this paper has been tested solely on an English corpus.
-Hence, the high results may be a phenomena particular to this language. For morphologically or syntactically complex languages the models would have struggled more. A benefit of using neural models for coreference resolution is their ability to use contextualized word embeddings to capture similarity between words, a property that many traditional feature-based models lack. However, a similar analysis should be done for other languages before one can generalize that machine-learning based models outperform rule-based models universally. % maybe it's more relevant in the conclusion A: I rewrote it. what about now?
 
 % over 100
 \begin{table}[ht]
@@ -686,23 +686,41 @@ Total &  & 51 & 50 \\
 
 \section{Conclusion and Future Work}
 
-\begin{itemize}
-\item so what have we learned about coref in general and local dependencies in particular
-\item everything we don't have the time for
-\item mention other corpora that could be used for finetuning (Winogrande, GAP...)
-\item apply roberta, spanbert (sota result, architecture still use c2f)
-\item try building span representations from intermediate layers, use scalar mixing
-\item comparing attention head of Joshi's and
-\item Efficient and long-range Transformers to capture long-range dependencies better, e.g. Compressive Transformers or any other sparse variant
-\item limitation of probing model, use control tasks?
-\item want to test span representation with frozen embeddings but trained attention, but alas GPU power is not enough
-\item rather than focus on span representation, focus on fine-tuning or pre-training task?
-\end{itemize}
+% \item everything we don't have the time for
+% \item mention other corpora that could be used for finetuning (Winogrande, GAP...)
+% \item apply roberta, spanbert (sota result, architecture still use c2f)
+% \item try building span representations from intermediate layers, use scalar mixing 
+ %\item rather than focus on span representation, focus on fine-tuning or pre-training task?
+ 
+%\item comparing attention head of Joshi's and
+%\item Efficient and long-range Transformers to capture long-range dependencies better, e.g. Compressive Transformers or any other sparse variant
+%\item limitation of probing model, use control tasks?
+%\item want to test span representation with frozen embeddings but trained attention, but alas GPU power is not enough
+%\item so what have we learned about coref in general and local dependencies in particular
+
+
+
+%In our work we demonstrate that a significant amount of coreference information is encoded in mention-span representations with BERT embeddings fine-tuned on OntoNotes dataset. Our results show that a simple linear probing model can be used to predict coreference for pairs of mentions with the accuracy of over 90\%. 
+%Our experiments suggest that our suggested span representations cannot encode long-range coreference as correctly as they encode short-range coreference, based on the fact that the performance of the models drops to the F1 score of 0.67 and 0.75 points for BERT-base and BERT-large respectively when the distance between mention spans is over 450 tokens.
+
+We study coreference information in the span representations of neural-based coreference resolvers with coreference arc prediction task. We demonstrate that using mention-span representations as inputs, a simple linear probing model can be used to predict coreference for pairs of mentions with accuracy and F1 of over 90\%. This suggests that a significant amount of coreference information is encoded in mention-span representations obtained from BERT embeddings, which is already fine-tuned on OntoNotes dataset. Our analysis also shows that the span representations cannot encode non-local coreference as efficient as they do with local coreference phenomena, based on the fact that the performance of the probing model drops to F1 score of 67\% and and 75\% for BERT-base and BERT-large respectively when the distance between pair of mention spans is over 450 tokens. Furthermore, we find that head-finding attention mechanism encodes important coreference related features in span representations, even when using original pre-trained BERT embeddings.
+
+% Future Work
+%towards the end
+%The findings we report are solely based on an English corpus. One must not fail to realise that the positive results may be a phenomena particular to this language. The previous research \parencite{russian, other-lang} suggests that for morphologically or syntactically complex languages it is more challenging to achieve such results. A benefit of using neural models for coreference resolution is their ability to use contextualized word embeddings to capture similarity between words, a property that many traditional feature-based models lack. However, a similar analysis should be done for other languages before one can generalize that machine-learning based models outperform rule-based models universally.
+
+The findings we report are solely based on an English corpus, and we acknowledge that the positive results may be a phenomena occuring to this particular language. Another line of works \parencite{russian,other-lang} suggest that for morphologically or syntactically complex languages, such results might be more challenging to achieve. One of the benefits of using neural models for coreference resolution is their ability to use contextualized word embeddings to capture similarity between words, a property that many traditional feature-based models lack. However, a similar analysis should be done for other languages before one can generalize that machine-learning based models outperform rule-based models universally.
+
+%Further future work includes finetuning the models on other coreference datasets such as GAP, Winogrande, Winogender, etc. Moreover, since the publication of BERT several other similar pre-trained models have been released that outperform BERT, such as RoBERTa \parencite{roberta}, SpanBERT\parencite{spanbert}, etc. These models could be substituted within out architecture. Also, one could experiment with building span representations from intermediate layers, instead of from the final layer of a pre-trained BERT model as well as utilise scalar mixing. Generally, fine-tuning the models as well as additional pre-training tasks may benefit the performance of the future models greatly. 
+
+Although we have shown that the span representation contains significant amount of coreference information using OntoNotes dataset, there are other challenging coreference resolution datasets that focus on ambiguous pronouns (GAP \parencite{webster2018gap}) and commonsense reasoning (WinoGrande \parencite{winogrande}), which can be used to better understand coreference information in span representation. Moreover, language representation methodologies that outperformed BERT such as RoBERTa \parencite{roberta} and SpanBERT \parencite{spanbert} can be substituted with BERT encoder to obtain a better span representation for coreference resolution. Lastly, instead of building span representations from the final layer of a pre-trained BERT model, one can opt to use activations from intermediate layers as well as ELMo-style scalar mixing \parencite{tenney2019context,peters2018elmo}. We leave this to future work.
+
 
  \todo{american/british english consistency} 
  \todo{oxford comma?, citation style }
 
-\newpage % bibliography should start on new pages for nicer formatting, can delete this if space is not enough. keep it for now.
+% \newpage
+% bibliography should start on new pages for nicer formatting, can delete this if space is not enough. keep it for now.
 \printbibliography
 
 \end{document}

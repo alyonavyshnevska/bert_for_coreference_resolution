@@ -609,9 +609,11 @@ As with anaphora resolution we observe a continuous number agreement. In the exa
 
 
 \subsection{Temporal and Spacial Agreement}
-Mention paraphrasing with reference to a specific date (e.g. January 3 and yesterday) and a specific spacial areas (two Chinese provinces).
+The category aggregates errors that the models have made with regards to spacial and temporal agreement between mentions. For humans such connections are easily resolved, however the results illustrate that both BERT-base c2f and BERT-large c2f models struggle to assign a negative coreference label to, for example, \textit{1996} and \textit{1997}. They also fail to align \textit{February 13th} with \textit{the 13th} in "... Xinhua News Agency, the UN, \textit{February 13th}, Today ... dropped by planes of the multi - national forces on \textit{teh 13th} at 4 ( 153 ) ". 
 
-1996 and 1997 are labeled as coreferent by joshi's base model. Or this year and 1994. This is a mistake that a human will likely not do.
+Moreover, \textit{southern North China} and \textit{Northwest China} do share two lexemes \textit{north} and \textit{China}, however humans would unlikely label these as corefering, whereas the models did so. Similarly, two Chinese geographical entities are predicted to be coreferent in "The east of Southwest China, as well as \textit{the Jiang-Huai area} ... experience continuous rainfall. However, southern North China and \textit{the Huang-Huai area} will bid ... ( 23 ). 
+
+The examples above are clear shortcomings of the models, which might be hard to resolve through more data or more training, since the mentions occur in very similar contexts, however, they point to entities are normally not coreferent. 
 
 % joshi 26-100 error analysis
 \begin{table}[ht]
@@ -648,10 +650,6 @@ Total &  & 28 & 26 \\
 % \item discussion of why they are the way the are
 % \end{itemize}
 
-\subsection{Other Languages}
-
-The results we introduced in this paper has been tested solely on an English corpus.
-Hence, the high results may be a phenomena particular to this language. For morphologically or syntactically complex languages the models would have struggled more. A benefit of using neural models for coreference resolution is their ability to use contextualized word embeddings to capture similarity between words, a property that many traditional feature-based models lack. However, a similar analysis should be done for other languages before one can generalize that machine-learning based models outperform rule-based models universally. % maybe it's more relevant in the conclusion A: I rewrote it. what about now?
 
 % over 100
 \begin{table}[ht]
@@ -699,6 +697,9 @@ Total &  & 51 & 50 \\
 \item want to test span representation with frozen embeddings but trained attention, but alas GPU power is not enough
 \item rather than focus on span representation, focus on fine-tuning or pre-training task?
 \end{itemize}
+
+%towards the end
+The findings we report are solely based on an English corpus. One must not fail to realise that the positive results may be a phenomena particular to this language. The previous research \todo{citation needed} suggests that for morphologically or syntactically complex languages it is more challenging to achieve such results. A benefit of using neural models for coreference resolution is their ability to use contextualized word embeddings to capture similarity between words, a property that many traditional feature-based models lack. However, a similar analysis should be done for other languages before one can generalize that machine-learning based models outperform rule-based models universally.
 
  \todo{american/british english consistency} 
  \todo{oxford comma?, citation style }

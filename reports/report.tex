@@ -77,7 +77,8 @@ Although such models are powerful, especially with more advanced language repres
 
 We follow along this line of work, focusing on BERT model for coreference resolution \parencite{joshi2019coref} and utilise probing task \parencite{tenney2019context,liu2019linguistic} to better understand coreference information that is encoded in the span representation first proposed by \parencite{lee2017end} and how fine-tuning affect the linguistic knowledge learned. We generate mention-span representations for words using BERT embeddings fine-tuned on OntoNotes dataset \parencite{conll} and train a model to make predictions from the mention-span representations alone. If we can train a simple model to predict coreference relation for pair of mentions from their span representations alone, then we can reasonably deduce that span representations encode coreference information.
 
-Our experimental results show that linear probing model trained on top of span representations obtained from fine-tuned BERT on coreference resolution consistently achieve > 90\% accuracy and F1 on OntoNotes test set, which shows that span representations are able to encode significant amount of coreference information. This also suggest that fine-tuning BERT model greatly helps with encoding coreference relations.
+Our experimental results show that linear probing model trained on top of span representations obtained from fine-tuned BERT on coreference resolution consistently achieve > 90\% accuracy and F1 on OntoNotes test set, which shows that span representations are able to encode significant amount of coreference information. This also suggest that fine-tuning BERT model greatly helps with encoding coreference relations. Additionally, by ablating components of the span representation, we found that head-finding attention mechanism plays a crucial part in encoding important coreference information. Our implementation is publicly available on GitHub.  \footnote{\url{https://github.com/alyonavyshnevska/bert_for_coreference_resolution}}.
+
 
 % While being a language short of elaborate agreements, English certainly enjoys the most scientific attention. It is a known challenge in NLP to do more research with agreement-rich languages \textit{citation needed}. 
 
@@ -100,8 +101,6 @@ Our experimental results show that linear probing model trained on top of span r
 %We found that the span represenations from within the coreference model by \textcite{joshi2019coref} reach \textit{insert some numbers}. The baseline model is at \textit{insert numbers}. This findings suggests that the pre-trained BERT model is a powerful tool for encoding information relevant to coreference resolution. 
 
 %For our second research question (non-local VS local dependencies) we found that ... \todo{what we found for local non-locat}
-
-Our implementation is publicly available on GitHub.  \footnote{\url{https://github.com/alyonavyshnevska/bert_for_coreference_resolution}}.
 
 
 \section{Related Work}
@@ -505,6 +504,7 @@ We compare how our probing model performs with various span separation distance 
 
 % confusion matric bert-base
 \begin{table}[ht]
+\centering
 \captionsetup{singlelinecheck = false, justification=justified}
 \setlength\tabcolsep{0pt} % let LaTeX figure out amount of inter-column whitespace
 \label{turns}
@@ -528,12 +528,13 @@ Recall & 0.93 & & \\
 
 % confusion matric bert-large
 \begin{table}[ht]
+\centering
 \captionsetup{singlelinecheck = false, justification=justified}
 \setlength\tabcolsep{0pt} % let LaTeX figure out amount of inter-column whitespace
 \label{turns}
 \begin{tabular*}{0.8\textwidth}{@{\extracolsep{\fill}} l *{4}{d{1.2}} }
 \toprule
-  \multicolumn{1}{c}{} & \multicolumn{1}{c}{\makecell{True \\ Coreferent}} & \multicolumn{1}{c}{\makecell{True \\ Non-Coreferent}} & \multicolumn{1}{c}{Precision} \\ 
+  \multicolumn{1}{c}{} & \multicolumn{1}{c}{\makecell{True Coreferent}} & \multicolumn{1}{c}{\makecell{True Non-Coreferent}} & \multicolumn{1}{c}{Precision} \\ 
  \midrule
  \midrule
  \makecell[l]{Predicted \\ Coreferent}  & 
@@ -687,19 +688,26 @@ Total &  & 51 & 50 \\
 
 \begin{itemize}
 \item so what have we learned about coref in general and local dependencies in particular
-\item everything we don't have the time for
-\item mention other corpora that could be used for finetuning (Winogrande, GAP...)
-\item apply roberta, spanbert (sota result, architecture still use c2f)
-\item try building span representations from intermediate layers, use scalar mixing
+% \item everything we don't have the time for
+% \item mention other corpora that could be used for finetuning (Winogrande, GAP...)
+% \item apply roberta, spanbert (sota result, architecture still use c2f)
+% \item try building span representations from intermediate layers, use scalar mixing
 \item comparing attention head of Joshi's and
 \item Efficient and long-range Transformers to capture long-range dependencies better, e.g. Compressive Transformers or any other sparse variant
 \item limitation of probing model, use control tasks?
 \item want to test span representation with frozen embeddings but trained attention, but alas GPU power is not enough
-\item rather than focus on span representation, focus on fine-tuning or pre-training task?
+% \item rather than focus on span representation, focus on fine-tuning or pre-training task?
 \end{itemize}
 
+In our work we demonstrate that a significant amount of coreference information is encoded in mention-span representations with BERT embeddings fine-tuned on OntoNotes dataset. Our results show that a simple linear probing model can be used to predict coreference for pairs of mentions with the accuracy of over 90\%. 
+Our experiments suggest that our suggested span representations cannot encode long-range coreference as correctly as they encode short-range coreference, based on the fact that the performance of the models drops to the F1 score of 0.67 and 0.75 points for BERT-base and BERT-large respectively when the distance between mention spans is over 450 tokens.
+
+% Future Work
 %towards the end
-The findings we report are solely based on an English corpus. One must not fail to realise that the positive results may be a phenomena particular to this language. The previous research \todo{citation needed} suggests that for morphologically or syntactically complex languages it is more challenging to achieve such results. A benefit of using neural models for coreference resolution is their ability to use contextualized word embeddings to capture similarity between words, a property that many traditional feature-based models lack. However, a similar analysis should be done for other languages before one can generalize that machine-learning based models outperform rule-based models universally.
+The findings we report are solely based on an English corpus. One must not fail to realise that the positive results may be a phenomena particular to this language. The previous research \parencite{russian, other-lang} suggests that for morphologically or syntactically complex languages it is more challenging to achieve such results. A benefit of using neural models for coreference resolution is their ability to use contextualized word embeddings to capture similarity between words, a property that many traditional feature-based models lack. However, a similar analysis should be done for other languages before one can generalize that machine-learning based models outperform rule-based models universally.
+
+Further future work includes finetuning the models on other coreference datasets such as GAP, Winogrande, Winogender, etc. Moreover, since the publication of BERT several other similar pre-trained models have been released that outperform BERT, such as RoBERTa \parencite{roberta}, SpanBERT\parencite{spanbert}, etc. These models could be substituted within out architecture. Also, one could experiment with building span representations from intermediate layers, instead of from the final layer of a pre-trained BERT model as well as utilise scalar mixing. Generally, fine-tuning the models as well as additional pre-training tasks may benefit the performance of the future models greatly. 
+
 
  \todo{american/british english consistency} 
  \todo{oxford comma?, citation style }

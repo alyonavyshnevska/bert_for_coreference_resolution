@@ -213,7 +213,7 @@ Along with the rise of deep learning architectures across a plethora of NLP task
 
 % describe approach to understand what neural network captures
 % focus on span level 
-\section{Overview of Span-Ranking Architecture}
+\section{Overview of the Span-Ranking Architecture}
 % Move Lee 2017, Lee 2018, Joshi 2019 here, with a more in-depth explanation, separate it from Related Work
 The first coreference resolution model that is trained in an end-to-end manner without relying on any syntactic parsers or hand-engineered mention detectors is introduced by \textcite{lee2017end}. To construct correct coreference clusters, the neural model learns to jointly model mention detection and coreference prediction using span-ranking approach.  With span-ranking approach, the model is able to consider all spans in a document up to a defined maximum length as candidate mentions and select the corresponding antecedent for each mention based on the antecedent distribution. We will further refer to the model as \textit{e2e-coref} in the paper.
 
@@ -246,19 +246,19 @@ where $\odot$ denotes the Hadamard product between $\pmb{g}_{i}$ and $\pmb{g}_{j
 % in case of emergency, insert figure.
 
 % however quite costly, transition to higher order.
-While the first order model proposed by \textcite{lee2017end} works quite well for coreference resolution, scoring only pairs of entity mentions means that previous coreference decisions are not taken into account when computing coreference decisions that occur afterwards. This drawback makes the model more susceptible to predicting clusters that are locally consistent but globally inconsistent. In an attempt to improve the weakness of this approach, \parencite{lee2018higher} proposed a model that captures higher-order interactions between mention spans in predicted coreference clusters. The model utilizes span-ranking architecture to refine existing span representations iteratively with the antecedent distribution as an attention mechanism. We will further refer to the model as \textit{c2f-coref} in the paper.
+While the first order model proposed by \textcite{lee2017end} works quite well for coreference resolution, scoring only pairs of entity mentions means that previous coreference decisions are not taken into account when computing coreference decisions that occur afterwards. This drawback makes the model more susceptible to predicting clusters that are locally consistent but globally inconsistent. In an attempt to improve the weakness of this approach, \textcite{lee2018higher} proposed a model that captures higher-order interactions between mention spans in predicted coreference clusters. The model utilizes span-ranking architecture to refine existing span representations iteratively with the antecedent distribution as an attention mechanism. We will further refer to the model as \textit{c2f-coref} in the paper.
 
 In order to refine the span representations, the higher-order model estimates the antecedent distributions $P_{n}(y_{i})$, which is obtained using the softmax function:
 \begin{align}
 P_{n}(y_{i}) = \frac{\text{exp}(s(\pmb{g}_{i}^{n}, \pmb{g}_{y_{i}}^{n}))}{\sum_{y \in \mathcal{Y}(i)} \text{exp}(s(\pmb{g}_{i}^{n}, \pmb{g}_{y}^{n}))}
 \end{align}
 
-where $s$ is the scoring function from \parencite{lee2017end}, $\pmb{g}_{i}^{n}$ is the representation for span $i$ at iteration $n$. The refined span representations also allow the model to iteratively refine $P_{n}(y_{i})$. Afterwards, the expectation of each span $i$ are computed by using the current antecedent distribution as the attention weight:
+where $s$ is the scoring function from \textcite{lee2017end}, $\pmb{g}_{i}^{n}$ is the representation for span $i$ at iteration $n$. The refined span representations also allows the model to iteratively refine $P_{n}(y_{i})$. Afterwards, a expectation of each span $i$ is computed by using the current antecedent distribution as the attention weight:
 \begin{align}
 \pmb{a}_{i}^{n} = \sum\limits_{y_{i} \in \mathcal{Y}(i)} P_{n}(y_{i}) \cdot \pmb{g}_{y_{i}}^{n}
 \end{align}
 
-where $\pmb{a}_{i}^{n}$ can be viewed as the expected antecedent representation. The span representation $\pmb{g}_{i}^{n}$ is updated with the expected antecedent representation $\pmb{a}_{i}^{n}$ using coupled forget and input gates formulated as the following:
+where $\pmb{a}_{i}^{n}$ can be viewed as the expected antecedent representation. The span representation $\pmb{g}_{i}^{n}$ is updated with the expected antecedent representation $\pmb{a}_{i}^{n}$ using coupled forget and input gates formulated as follows:
 \begin{align}
 \pmb{f}_{i}^{n} &= \sigma(\textbf{W}_{f}[\pmb{g}_{i}^{n}, \pmb{a}_{i}^{n}]) \\
 \pmb{g}_{i}^{n+1} &= \pmb{f}_{i}^{n} \odot \pmb{g}_{i}^{n} + (\mathbf{1} - \pmb{f}_{i}^{n}) \odot \pmb{a}_{i}^{n}
@@ -266,7 +266,7 @@ where $\pmb{a}_{i}^{n}$ can be viewed as the expected antecedent representation.
 
 where $\pmb{f}_{i}^{n} \in [0,1]$ is a gate vector that controls whether to retain the information from the current span representation or to update the span representation with the expected antecedent. Altogether, this mechanism allows the model to compute the final antecedent distribution conditioned on up to $n$ other mention spans. 
 
-To alleviate the additional computational cost of higher-order inference, \parencite{lee2018higher} also proposed a coarse-to-fine beam search, which does not establish an a priori maximum coreference distance. In order to prune potential mentions aggresively, the coreference score is reformulated as the following:
+To alleviate the additional computational cost of higher-order inference, \textcite{lee2018higher} also proposed a coarse-to-fine beam search, which does not establish an a priori maximum coreference distance. In order to prune potential mentions aggressively, the coreference score is reformulated as follows:
 \begin{align}
 s_{c}(i, j) &= \pmb{g}_{i}^{\top}\textbf{W}_{c}\, \pmb{g}_{j}\\
 s(i, j) &= \begin{cases}
@@ -275,10 +275,10 @@ s_{m}(i) + s_{m}(j) + s_{a}(i, j) + s_{c}(i, j) & j \neq \epsilon \\
 \end{cases}
 \end{align}
 
-where $s_{c}(i, j)$ a bilinear scoring function to compute a rough sketch of possible antecedents. To obtain the coreference score, the model executes a three-stage beam search. At the first stage, a beam of up to $M$ candidate mention spans are considered based on the mention score $s_{m}(i)$. Afterwards,  approximation of pairwise coreference score is computed based on $s_{m}(i) + s_{m}(j) + s_{c}(i, j)$ to keep top $K$ candidate antecedents for each remaining mention spans. In the last phase, the final coreference score $s(i, j)$ is computed based on the surviving pairs of mention spans.
+where $s_{c}(i, j)$ is a bilinear scoring function to compute a rough sketch of possible antecedents. To obtain the coreference score, the model executes a three-stage beam search. At the first stage, a beam of up to $M$ candidate mention spans is considered based on the mention score $s_{m}(i)$. Afterwards, an approximation of pairwise coreference scores is computed based on $s_{m}(i) + s_{m}(j) + s_{c}(i, j)$ to keep top $K$ candidate antecedents for each remaining mention span. In the last phase, the final coreference score $s(i, j)$ is computed based on the remaining pairs of mention spans.
 % describe latent antecedent trees in case of emergency
 
-Recently, BERT \parencite{devlin2019bert} has achieved state-of-the-art results on a wide array of NLP tasks, such as question answering and natural language inference, without any substantial task-specific architecture modifications. \parencite{joshi2019coref} proposed to replace the bidirectional LSTM encoder in \textit{c2f-coref} with BERT transformers and fine-tune it on coreference resolution task. Although BERT improves the state-of-the-art results in other tasks significantly, coreference resolution still proves to be a challenging task, as BERT encoder offers only a marginal performance increase. Furthermore, the model still struggles in modeling pronouns and resolving cases where mention paraphrasing is required. We refer the model by \parencite{joshi2019coref} as \textit{BERT-coref}.
+Recently, BERT \parencite{devlin2019bert} has achieved state-of-the-art results on a wide variety of NLP tasks, such as question answering and natural language inference, without any substantial task-specific architecture modifications. \textcite{joshi2019coref} proposed to replace the bidirectional LSTM encoder in \textit{c2f-coref} with BERT transformers and fine-tune it on coreference resolution task. Although BERT improves the state-of-the-art results in other tasks significantly, coreference resolution still proves to be a challenging task, as BERT encoder offers only a marginal performance increase. Furthermore, the model still struggles in modeling pronouns and resolving cases where mention paraphrasing is required. We refer the model by \textcite{joshi2019coref} as \textit{BERT-coref}.
 
 
 %describe iterative, enables later coreference decisions to softly condition on earlier coreference decisions.
@@ -562,7 +562,7 @@ Recall & 0.93 & & \\
 Moreover, the errors were also categorised into \textit{True positives, True Negatives, False Positives,} and \textit{False Negatives}. The numbers are accessible in the table \ref{table:confusion-matrix-base} and \ref{table:confusion-matrix-large}. We observe that false positives constitute 4,08\% of the predictions for BERT-base c2f, while false negatives make up 3,36\% of predictions for the model. BERT-base c2f yields only 3,2\% false positives, although a slightly higher 3,5\% false negatives.
 
 % joshi 0-25 error analysis
-\begin{table}[h]
+\begin{table}[h]\small
 \captionsetup{singlelinecheck = false, justification=justified}
 \setlength\tabcolsep{0pt} % let LaTeX figure out amount of inter-column whitespace
 \label{turns}
@@ -613,7 +613,7 @@ As with anaphora resolution we observe a continuous number agreement. In the exa
 
 
 % joshi 26-100 error analysis
-\begin{table}[h]
+\begin{table}[t!]\small
 \captionsetup{singlelinecheck = false, justification=justified}
 \setlength\tabcolsep{0pt} % let LaTeX figure out amount of inter-column whitespace
 \label{turns}
@@ -649,7 +649,7 @@ Total &  & 28 & 26 \\
 
 
 % over 100
-\begin{table}[h]
+\begin{table}[b!]\small
 \captionsetup{singlelinecheck = false, justification=justified}
 \setlength\tabcolsep{0pt} % let LaTeX figure out amount of inter-column whitespace
 \label{turns}

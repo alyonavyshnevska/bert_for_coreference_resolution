@@ -206,7 +206,7 @@ While earlier machine learning based-approaches depended on hand-crafted feature
 
 Along with the rise of deep learning architectures across a plethora of NLP tasks, there are also some concerns regarding their interpretability and whether neural-based approaches are truly able to capture linguistic concepts. The most common method to explore linguistic properties in neural network components is by using the hidden state activations to predict the property of interest, also known as "probing tasks" \parencite{conneau-etal-2018-cram} or "auxiliary prediction tasks" \parencite{auxilliarypredictiontasks}. \textcite{shi2016string} use the internal representations of an LSTM encoder as input to train a logistic regression classifier that predicts various syntactic properties. \textcite{conneau-etal-2018-cram} study the linguistic properties of fixed-length sentence encoders with a bidirectional LSTM and gated convolutional networks.
 
-\textcite{liu2019linguistic} explore representations produced by pre-trained contextualisers and demonstrate that frozen contextual representations fed into linear models can show similar levels of performance as state-of-the-art task-specific models on many NLP tasks. They also introduce coreference arc prediction task, where linear models are used to predict whether two mentions corefer. \textcite{tenney2019context} introduce edge probing framework, which focuses on linguistic analysis on sub-sentence level. Their approach relies on a linear model with a projection layer and an attention mechanism on top of frozen contextual vectors to predict linguistic properties. Clark further extend the probing-based approach by proposing attention-based probing classifiers. The researchers demonstarte that the attention heads in BERT correspond to linguistic notions of syntax and coreference. Our approach is most similar to \textcite{liu2019linguistic} and \textcite{tenney2019context}, but we use span representations introduced by \textcite{lee2017end} and focus on examining coreference phenomena.
+\textcite{liu2019linguistic} explore representations produced by pre-trained contextualisers and demonstrate that frozen contextual representations fed into linear models can show similar levels of performance as state-of-the-art task-specific models on many NLP tasks. They also introduce coreference arc prediction task, where linear models are used to predict whether two mentions corefer. \textcite{tenney2019context} introduce edge probing framework, which focuses on linguistic analysis on sub-sentence level. Their approach relies on a linear model with a projection layer and an attention mechanism on top of frozen contextual vectors to predict linguistic properties. \parencite{clark2019what} further extend the probing-based approach by proposing attention-based probing classifiers. The researchers demonstarte that the attention heads in BERT correspond to linguistic notions of syntax and coreference. Our approach is most similar to \textcite{liu2019linguistic} and \textcite{tenney2019context}, but we use span representations introduced by \textcite{lee2017end} and focus on examining coreference phenomena.
 
 
 
@@ -215,9 +215,9 @@ Along with the rise of deep learning architectures across a plethora of NLP task
 % focus on span level 
 \section{Overview of Span-Ranking Architecture}
 % Move Lee 2017, Lee 2018, Joshi 2019 here, with a more in-depth explanation, separate it from Related Work
-The first coreference resolution model that is trained in an end-to-end manner without relying on any syntactic parser or hand-engineered mention detector is introduced by \parencite{lee2017end}. To construct correct coreference clusters, the neural model learn to jointly model mention detection and coreference prediction using span-ranking approach.  With span-ranking approach, the model is able to consider all spans in a document up to a defined maximum length as a candidate mention and select the corresponding antecedent for each mention based on the antecedent distribution. We will further refer to the model as \textit{e2e-coref} in the paper.
+The first coreference resolution model that is trained in an end-to-end manner without relying on any syntactic parsers or hand-engineered mention detectors is introduced by \textcite{lee2017end}. To construct correct coreference clusters, the neural model learns to jointly model mention detection and coreference prediction using span-ranking approach.  With span-ranking approach, the model is able to consider all spans in a document up to a defined maximum length as candidate mentions and select the corresponding antecedent for each mention based on the antecedent distribution. We will further refer to the model as \textit{e2e-coref} in the paper.
 
-The span-ranking architecture estimates the joint probability distribution of mention-spans that belong to the same cluster given the document, by calculating product of multinomials for each span:
+The span-ranking architecture estimates the joint probability distribution of mention-spans that belong to the same cluster given a document by calculating a product of multinomials for each span:
 \begin{align}
 P(y_{1}, ..., y_{n}|D) &= \prod\limits_{i=1}^{N} P(y_{i}|D) \\
 &= \prod\limits_{i=1}^{N} \frac{\text{exp}(s(i, y_{i}))}{\sum_{y' \in \mathcal{Y}(i)} \text{exp}(s(i, y'))}
@@ -231,22 +231,22 @@ s_{m}(i) + s_{m}(j) + s_{a}(i, j) & j \neq \epsilon \\
 \end{cases}
 \end{align} 
 
-where $\epsilon$ is a dummy antecedent to represent that the span is not a mention or the case where it is a mention that coreferent with none of the previous mention span.
+where $\epsilon$ is a dummy antecedent to represent that the span is not a mention or the case where a mention is not coreferent with any of the previous mention spans.
 
-In this model, a bidirectional LSTM \parencite{lstm} is used to compute vector representations $\pmb{g}_{i}$ of each possible span $i$ from the word and character embeddings in the span. The word embeddings itself are a fixed concatenation of GloVe \parencite{pennington2014glove} and Turian embeddings \parencite{turian-etal-2010-word}. The character embeddings are learned using CNN, with three various window sizes. It also provide morphological information and allows the model to deal with rare words. The span representation $\pmb{g}_{i}$, which we will describe in detail in the following section, is then used to compute $s_{m}(i)$ and $s_{a}(i, j)$ via feed-forward neural networks as follows:
+In this model, a bidirectional LSTM \parencite{lstm} is used to compute vector representations $\pmb{g}_{i}$ of each possible span $i$ from word and character embeddings in the span. The word embeddings itself are a fixed concatenation of GloVe \parencite{pennington2014glove} and Turian embeddings \parencite{turian-etal-2010-word}. The character embeddings are learned using CNN with three various window sizes. It also provides morphological information and allows the model to deal with rare words. The span representation $\pmb{g}_{i}$, which we will describe in detail in section \ref{subsection:spanreps}, is then used to compute $s_{m}(i)$ and $s_{a}(i, j)$ via feed-forward neural networks as follows:
 \begin{align}
 s_{m}(i) &= \pmb{w}_{m} \cdot \text{FFNN}_{m}(\pmb{g}_{i}) \\
 s_{a}(i, j) &= \pmb{w}_{a} \cdot \text{FFNN}_{a}([\pmb{g}_{i}, \pmb{g}_{j}, \pmb{g}_{i} \odot \pmb{g}_{j}, \phi(i, j)])
 \end{align}
 
-where $\odot$ denotes the Hadamard product between $\pmb{g}_{i}$ and $\pmb{g}_{j}$, and $\phi(i, j)$ is a feature vector that encodes speaker and genre information from the metadata and the distance between a pair of span. The final coreference score is computed through a two-stage beam search as the model complexity is quartic in terms of the document length. In the first phase, a beam of up to $\lambda T$ candidate mention spans are considered based on the highest mention scores $s_{m}(i)$, where $\lambda$ is a hyperparameter and $T$ is the document length. Afterwards, only the filtered mentions are used to compute the joint score $s_{a}(i, j)$ during both training and inference, with the limitation that only up to $K$ candidate antecedents that are considered for each mention.
+where $\odot$ denotes the Hadamard product between $\pmb{g}_{i}$ and $\pmb{g}_{j}$, and $\phi(i, j)$ is a feature vector that encodes speaker and genre information from the metadata and the distance between a pair of spans. The final coreference score is computed through a two-stage beam search as the model complexity is quadratic in terms of the document length. In the first phase, a beam of up to $\lambda T$ candidate mention spans are considered based on the highest mention scores $s_{m}(i)$, where $\lambda$ is a hyperparameter and $T$ is the document length. Afterwards, only the filtered mentions are used to compute the joint score $s_{a}(i, j)$ during both training and inference, with the limitation that only up to $K$ candidate antecedents are considered for each mention.
 % describe embeddings (glove, turian, etc) 
 % describe encoder
 % describe pruning for inference
 % in case of emergency, insert figure.
 
 % however quite costly, transition to higher order.
-While the first order model proposed by \parencite{lee2017end} works quite well for coreference resolution, scoring only pairs of entity mentions means that previous coreference decisions are not taken into account when computing coreference decisions that occur afterwards. This drawback makes the model more susceptible to predicting clusters that are locally consistent but globally inconsistent. In an attempt to improve the weakness of this approach, \parencite{lee2018higher} proposed a model that captures higher-order interactions between mention spans in predicted coreference clusters. The model utilizes span-ranking architecture to refine existing span representations iteratively with the antecedent distribution as an attention mechanism. We will further refer to the model as \textit{c2f-coref} in the paper.
+While the first order model proposed by \textcite{lee2017end} works quite well for coreference resolution, scoring only pairs of entity mentions means that previous coreference decisions are not taken into account when computing coreference decisions that occur afterwards. This drawback makes the model more susceptible to predicting clusters that are locally consistent but globally inconsistent. In an attempt to improve the weakness of this approach, \parencite{lee2018higher} proposed a model that captures higher-order interactions between mention spans in predicted coreference clusters. The model utilizes span-ranking architecture to refine existing span representations iteratively with the antecedent distribution as an attention mechanism. We will further refer to the model as \textit{c2f-coref} in the paper.
 
 In order to refine the span representations, the higher-order model estimates the antecedent distributions $P_{n}(y_{i})$, which is obtained using the softmax function:
 \begin{align}
@@ -559,12 +559,10 @@ Recall & 0.93 & & \\
 \label{table:confusion-matrix-large}
 \end{table}
 
-
-
 Moreover, the errors were also categorised into \textit{True positives, True Negatives, False Positives,} and \textit{False Negatives}. The numbers are accessible in the table \ref{table:confusion-matrix-base} and \ref{table:confusion-matrix-large}. We observe that false positives constitute 4,08\% of the predictions for BERT-base c2f, while false negatives make up 3,36\% of predictions for the model. BERT-base c2f yields only 3,2\% false positives, although a slightly higher 3,5\% false negatives.
 
 % joshi 0-25 error analysis
-\begin{table}[ht]
+\begin{table}[h]
 \captionsetup{singlelinecheck = false, justification=justified}
 \setlength\tabcolsep{0pt} % let LaTeX figure out amount of inter-column whitespace
 \label{turns}
@@ -589,7 +587,6 @@ Total &  & 14 & 8 \\
 \caption{Error Analysis of BERT-base c2f and BERT-large c2f models for examples with short-range coreference (0-25 tokens apart). False positives are denoted \textbf{bold}, false negatives -- \textit{cursive}. }
 \label{table:error-0-25}
 \end{table}
-
 Tables \ref{table:error-0-25}, \ref{table:error-26-100}, and \ref{table:error-over-100} portray a detailed overview of the errors made my both models in each category. As one observes immediately, mentions that are separated by a large distance have a higher error rate than mentions separated by smaller distances. 
 
 We can confidently conclude that BERT-base c2f and BERT-large c2f perform better at resolving coreference locally. The most difficult for all models is anaphora resolution, which is consistent with previous research. The least problematic category for all models is Gender. Out of the 1250 analysed examples on one mention led to errors -- \textit{Scooter Libby}. The mention has been consistently marked as coreferent with \textit{she} and \textit{her}. 
@@ -612,18 +609,11 @@ We made a choice to aggregate errors relating to gender pronouns in a separate c
 
 \subsubsection{Mention Paraphrasing} The category consists of errors where two mentions that refer to the same entity aren't recognised as coreferent as well as errors where two distinct mentions as labelled coreferent. It appears that often mentions that tend to be surrounded by similar token, such are \textit{George Bush} and \textit{Ronald Reagan}, are labelled coreferent as in "... If Rove gets indicted that could bring down the \textit{Bush} administration ... the ultimate image meister for Ronald Reagan said ... ( 739 ) ". 
 
-As with anaphora resolution we observe a continuous number agreement. In the example "... the peace , stability and development of the world. \textit{Both sides} also exchanged ... six years since the establishment of diplomatic relations between \textit{China and Uruguay} ... ( 164 ) ". The two mentions are not coreferent, however, the model seems to have learned that \textit{both sides} implies two entities. It is plausible, that in some other context \textit{China and Uruguay} can be referred with \textit{both sides}.
+As with anaphora resolution we observe a continuous number agreement. In the example "... the peace , stability and development of the world. \textit{Both sides} also exchanged ... six years since the establishment of diplomatic relations between \textit{China and Uruguay} ... ( 164 ) ". The two mentions are not coreferent, however, the model seems to have learned that \textit{both sides} implies two entities. It is plausible, that in some other context \textit{China and Uruguay} can be referred with \textit{both sides}
 
-
-\subsubsection{Temporal and Spacial Agreement}
-The category aggregates errors that the models have made with regards to spacial and temporal agreement between mentions. For humans such connections are easily resolved, however the results illustrate that both BERT-base c2f and BERT-large c2f models struggle to assign a negative coreference label to, for example, \textit{1996} and \textit{1997}. They also fail to align \textit{February 13th} with \textit{the 13th} in "... Xinhua News Agency, the UN, \textit{February 13th}, Today ... dropped by planes of the multi - national forces on \textit{teh 13th} at 4 ( 153 ) ". 
-
-Moreover, \textit{southern North China} and \textit{Northwest China} do share two lexemes \textit{north} and \textit{China}, however humans would unlikely label these as corefering, whereas the models did so. Similarly, two Chinese geographical entities are predicted to be coreferent in "The east of Southwest China, as well as \textit{the Jiang-Huai area} ... experience continuous rainfall. However, southern North China and \textit{the Huang-Huai area} will bid ... ( 23 ). 
-
-The examples above are clear shortcomings of the models, which might be hard to resolve through more data or more training, since the mentions occur in very similar contexts, however, they point to entities are normally not coreferent. 
 
 % joshi 26-100 error analysis
-\begin{table}[ht]
+\begin{table}[h]
 \captionsetup{singlelinecheck = false, justification=justified}
 \setlength\tabcolsep{0pt} % let LaTeX figure out amount of inter-column whitespace
 \label{turns}
@@ -659,7 +649,7 @@ Total &  & 28 & 26 \\
 
 
 % over 100
-\begin{table}[ht]
+\begin{table}[h]
 \captionsetup{singlelinecheck = false, justification=justified}
 \setlength\tabcolsep{0pt} % let LaTeX figure out amount of inter-column whitespace
 \label{turns}
@@ -688,6 +678,13 @@ Total &  & 51 & 50 \\
 \caption{Error Analysis of BERT-base c2f and BERT-large c2f models for examples with long-range coreference (over 100 tokens apart). False positives are denoted \textbf{bold}, false negatives -- \textit{cursive}. }
 \label{table:error-over-100}
 \end{table}
+
+\subsubsection{Temporal and Spacial Agreement}
+The category aggregates errors that the models have made with regards to spacial and temporal agreement between mentions. For humans such connections are easily resolved, however the results illustrate that both BERT-base c2f and BERT-large c2f models struggle to assign a negative coreference label to, for example, \textit{1996} and \textit{1997}. They also fail to align \textit{February 13th} with \textit{the 13th} in "... Xinhua News Agency, the UN, \textit{February 13th}, Today ... dropped by planes of the multi - national forces on \textit{teh 13th} at 4 ( 153 ) ". 
+
+Moreover, \textit{southern North China} and \textit{Northwest China} do share two lexemes \textit{north} and \textit{China}, however humans would unlikely label these as corefering, whereas the models did so. Similarly, two Chinese geographical entities are predicted to be coreferent in "The east of Southwest China, as well as \textit{the Jiang-Huai area} ... experience continuous rainfall. However, southern North China and \textit{the Huang-Huai area} will bid ... ( 23 ). 
+
+The examples above are clear shortcomings of the models, which might be hard to resolve through more data or more training, since the mentions occur in very similar contexts, however, they point to entities are normally not coreferent. 
 
 
 \section{Conclusion and Future Work}

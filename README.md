@@ -12,7 +12,7 @@ This repository contains code for our paper. We attempt to probe to what extent 
 The pretrained models can be downloaded using `download_pretrained.sh <model_name>` (i.e. `bert_base` or `bert_large`; this assumes that `$data_dir` is set).
 
 ## Extracting Span Representations
-To extract the span representations in .h5 format, run `extract_span.py` and `extract_span_baseline.py` for the baseline. Here is a sample code
+To extract the span representations in .h5 format, run `extract_span.py` and `extract_span_baseline.py` for the baseline. Here is a sample code:
 ```
 python3 extract_span.py bert_base $data_dir/<input.jsonlines> $data_dir span_representation_bert_base
 ```

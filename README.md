@@ -1,15 +1,24 @@
-Contributors:
-Patrick Kahardipraja    
-Olena Vyshnevska
+# Exploring Span Representations in Neural Coreference Resolution
 
+This repository contains code for our paper. We attempt to probe to what extent can span representations encode coreference relations. We also question whether if span representations are able to encode long-range coreference phenomena effectively, or are they just simply modelling local coreference relations. We extend the implementation of [BERT for Coreference Resolution](https://github.com/mandarjoshi90/coref). The source code is located under `src`.
 
-Coreference resolution, the task that involves determining all referring expressions that point to the same entity in a discourse model, plays a key role for various higher level NLP tasks that involve natural language understanding such as information extraction, question answering, machine translation, text summarisation, and textual entailment. In coreference resolution task, referring expressions (i.e. mentions) could be a common noun, a proper noun, or a pronoun, which refer to a real-world entity known as the referent. The main goal of a coreference resolution system is to group the mentions such that the corefering mentions are placed together in a coreference cluster.
+## Setup
+* Install python3 requirements: `pip install -r requirements.txt`
+* Export path to OntoNotes directory: `export data_dir=</path/to/data_dir>`
+* `/setup_all.sh`: This script builds the custom kernels.
+* `setup_training.sh`: This script preprocesses the OntoNotes corpus and download the original BERT models.
 
-In the recent years neural-based coreference resolution approaches gained prominence. This can be attributed to the ability of neural networks to learn features automatically with multiple, hierarchical representations as well as their high performance and ability to generalise better compared to rule-based approach. Most of the state-of-the-art deep learning-based coreference resolvers learn representations from word embeddings on a phrase level by constructing them explicitly (Lee, L. He, Lewis, et al. 2017) and continually refining them (Lee, L. He, and Zettlemoyer 2018; Kantor and Globerson 2019).
+## Pre-trained Models
+The pretrained models can be downloaded using `download_pretrained.sh <model_name>` (i.e. `bert_base` or `bert_large`; this assumes that `$data_dir` is set).
 
-Although such models are powerful, especially with more advanced language representation methods (Devlin et al. 2019; Peters, Neumann, Iyyer, et al. 2018), questions still remain regarding the interpretability of neural NLP models. A wave of recent work has tried to inspect neural NLP models to understand whether they are truly able to capture linguistic information by trying to associate neural network components with distinct types of linguistic phenomena. Such line of work (Shi, Padhi, and Knight 2016; N. F. Liu et al. 2019; Tenney et al. 2019) demonstrates that deep learning-based models can encode a wide variety of syntactic and semantic information.
+## Extracting Span Representations
+To extract the span representations in .h5 format, run `extract_span.py` and `extract_span_baseline.py` for the baseline. Here is a sample code:
+```
+python3 extract_span.py bert_base $data_dir/<input.jsonlines> $data_dir span_representation_bert_base
+```
 
-We follow along this line of work, focusing on the BERT model for coreference resolution (Joshi, Levy, et al. 2019) and utilise the probing task (Tenney et al. 2019; N. F. Liu et al. 2019) to find out to what degree the coreference information is encoded in the span representations first proposed by Lee, L. He, Lewis, et al. (2017). We also intend to learn how fine-tuning BERT on coreference resolution affects the linguistic knowledge learned. Additionally, we inspect if non-local coreference relations can be predicted as correctly as local ones. In order to answer these questions, we generate mention-span representations with BERT embeddings fine-tuned on OntoNotes dataset (Pradhan et al. 2012) and train a model to make predictions from the mention-span representations alone. If we could train a simple model to predict coreference relation for pairs of mentions from their span representations alone, then we could reasonably deduce that span representations encode coreference information.
-
-
-Our experimental results show that a linear probing model trained on top of span representations obtained from fine-tuned BERT on coreference resolution consistently achieves > 90% accuracy and F1 on OntoNotes test set. This findings demonstrate that span representations are able to encode a significant amount of coreference information. It also suggests that fine-tuning a BERT model greatly helps with encoding coreference relations. Furthermore, by ablating components of the span representation, we found that head-finding attention mechanism plays a crucial part in encoding important coreference information. We also show that despite using fine-tuned BERT, the span representations cannot capture non-local coreference relation efficiently.
+## Running Probing Experiments
+The extracted .h5 files can be used to run probing experiments using `train_baseline.py` and `train_probe.py`. Here is a sample code:
+```
+python3 train_baseline.py --train_data </path/to/train_data> --val_data </path/to/val_data> --test_data </path/to/test_data> --exp_name <test_experiment_name> --cnn_context 1 --embed_dim 1024
+```
